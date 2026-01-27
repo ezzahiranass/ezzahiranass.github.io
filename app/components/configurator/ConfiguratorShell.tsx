@@ -12,6 +12,7 @@ type ConfiguratorShellProps = {
 
 export default function ConfiguratorShell({ model }: ConfiguratorShellProps) {
   const guiRef = useRef<HTMLDivElement | null>(null);
+  const statsRef = useRef<HTMLDivElement | null>(null);
   const [params, setParams] = useState<ParamValues>(() => ({ ...model.defaults }));
   const cameraPosition = model.camera?.position ?? ([1, 1, 1] as [number, number, number]);
   const cameraFov = model.camera?.fov ?? 50;
@@ -24,18 +25,27 @@ export default function ConfiguratorShell({ model }: ConfiguratorShellProps) {
     if (!guiRef.current) return undefined;
 
     const gui = new GUI({ container: guiRef.current, width: 240, title: model.name });
+    const statsGui = model.buildStats && statsRef.current
+      ? new GUI({ container: statsRef.current, width: 240, title: 'Stats' })
+      : null;
+
     const state: ParamValues = { ...model.defaults };
     const onChange = (next: ParamValues) => setParams({ ...next });
 
     model.buildGui(gui, state, onChange);
+    if (statsGui && model.buildStats) {
+      model.buildStats(statsGui, state, onChange);
+    }
 
     return () => {
       gui.destroy();
+      statsGui?.destroy();
     };
   }, [model]);
 
   return (
     <div className="relative h-128 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-strong)]">
+      <div ref={statsRef} className="absolute left-3 top-3 z-10" />
       <div ref={guiRef} className="absolute right-3 top-3 z-10" />
       <Canvas
         shadows

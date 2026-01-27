@@ -19,4 +19,9 @@ export type ModelDefinition = {
     params: ParamValues,
     onChange: (next: ParamValues) => void
   ) => void;
+  buildStats?: (
+    gui: GUI,
+    params: ParamValues,
+    onChange: (next: ParamValues) => void
+  ) => void;
 };
