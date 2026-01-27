@@ -4,6 +4,7 @@ import RoadmapSection from "./components/landing/RoadmapSection";
 import experienceData from "../public/data/experience.json";
 import educationData from "../public/data/education.json";
 import ThemeToggle from "./components/theme/ThemeToggle";
+import ConfiguratorSection from "./components/configurator/ConfiguratorSection";
 
 export default function Home() {
   return (
@@ -146,11 +147,7 @@ export default function Home() {
               ThreeJS Parametric Configurator
             </div>
             <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-8">
-              <div className="h-64 rounded-2xl border border-[var(--border)] bg-[var(--surface-strong)] text-[var(--foreground)]">
-                <div className="flex h-full items-center justify-center text-sm font-bold uppercase text-[var(--muted)]">
-                  Building Configurator Viewer
-                </div>
-              </div>
+              <ConfiguratorSection />
               <div className="mt-4 text-sm text-[var(--muted)]">
                 Controls, toggles, and parametric options go here.
               </div>

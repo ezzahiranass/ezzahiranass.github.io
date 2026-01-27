@@ -33,17 +33,25 @@ function ParticleField({
     const positions = new Float32Array(count * 3);
     const width = viewport.width * 1.2;
     const height = viewport.height * 1.1;
+    const rand = (seed: number) => {
+      const value = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
+      return value - Math.floor(value);
+    };
     for (let i = 0; i < count; i += 1) {
       const index = i * 3;
-      positions[index] = (Math.random() - 0.5) * width;
-      positions[index + 1] = (Math.random() - 0.5) * height;
-      positions[index + 2] = (Math.random() - 0.5) * 1.5;
+      const seed = i + count * 0.1;
+      positions[index] = (rand(seed) - 0.5) * width;
+      positions[index + 1] = (rand(seed + 1.7) - 0.5) * height;
+      positions[index + 2] = (rand(seed + 2.4) - 0.5) * 1.5;
     }
     return positions;
   }, [count, viewport.width, viewport.height]);
 
   const positions = useMemo(() => basePositions.slice(), [basePositions]);
-  const driftSeed = useMemo(() => Math.random() * 1000, []);
+  const driftSeed = useMemo(
+    () => (count + viewport.width * 10 + viewport.height * 100) * 0.01,
+    [count, viewport.width, viewport.height]
+  );
 
   useEffect(() => {
     const handlePointerMove = (event: PointerEvent) => {
@@ -125,7 +133,6 @@ function ParticleField({
     camera.position.y = Math.cos(time * 0.06) * 0.25;
     camera.lookAt(0, 0, 0);
   });
-
   return (
     <points ref={pointsRef}>
       <bufferGeometry>
@@ -138,7 +145,6 @@ function ParticleField({
     </points>
   );
 }
-
 export default function ThreeBackground() {
   const { theme } = useTheme();
   const colors = theme === 'dark'

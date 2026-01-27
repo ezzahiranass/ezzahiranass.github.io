@@ -25,6 +25,7 @@
     "@types/three": "^0.182.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.4",
+    "lil-gui": "^0.21.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
