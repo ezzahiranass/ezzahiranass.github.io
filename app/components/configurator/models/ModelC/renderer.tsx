@@ -11,6 +11,11 @@ import Overhang from './parts/overhang';
 import Slab from './parts/slab';
 import Coating from './parts/coating';
 import Arch from './parts/arch';
+import HorizontalStrips from './parts/horizontalStrips';
+import VerticalStrips from './parts/verticalStrips';
+import GlassRailing from './parts/glassRailing';
+import WindowBig from './parts/windowBig';
+import WindowSmall from './parts/windowSmall';
 
 type Params = ParamValues & {
   floors: number;
@@ -24,11 +29,10 @@ type Params = ParamValues & {
   balconyLeft: boolean;
   balconyRight: boolean;
   balconyWidth: number;
-  balconyWall: boolean;
   balconyRailing: string;
   windowWidth: number;
-  balconyCoating: string;
-  windowCoating: string;
+  stripHeight: number;
+  stripSpacing: number;
 };
 
 export function ModelCRenderer({ params }: { params: ParamValues }) {
@@ -66,7 +70,7 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
   const archBalconyXLeft = -sizeX / 2 + typed.balconyWidth / 2;
   const archBalconyXRight = sizeX / 2 - typed.balconyWidth / 2;
   const balconyArchCount = typed.balconyWidth > 2.5 ? 2 : 1;
-  const balconyArchGap = 0.1;
+  const balconyArchGap = 0;
   const balconyArchWidth = balconyArchCount === 1
     ? Math.max(typed.balconyWidth - 0.1, 0.2)
     : Math.max((typed.balconyWidth - balconyArchGap) / 2, 0.2);
@@ -75,6 +79,13 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
     : [-(balconyArchWidth / 2 + balconyArchGap / 2), (balconyArchWidth / 2 + balconyArchGap / 2)];
   const slabLength = sizeZ + typed.overhang;
   const slabOffsetZ = -typed.overhang / 2;
+  const stripThickness = typed.stripHeight;
+  const stripSpacing = typed.stripSpacing;
+  const railingThickness = 0.05;
+  const railingHeight = 0.9;
+  const railingZ = overhangZ - overhangLength / 2 + railingThickness / 2;
+  const windowZ = -sizeZ / 2 - typed.overhang + 0.02;
+  const balconyWindowZ = -sizeZ / 2 + 0.02;
   useEffect(() => {
     const overlayGroup = new THREE.Group();
     scene.traverse((child) => {
@@ -141,6 +152,11 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
         const slabBaseY = typed.groundFloorHeight
           + index * (typed.floorHeight + typed.slabThickness);
         const floorBaseY = slabBaseY + typed.slabThickness;
+        const floorBalconyWall = typed[`balconyWall_${index}`] !== false;
+        const floorBalconyCoating = (typed[`balconyCoating_${index}`] as string | undefined) ?? 'None';
+        const floorWindowCoating = (typed[`windowCoating_${index}`] as string | undefined) ?? 'None';
+        const floorWindowType = (typed[`windowType_${index}`] as string | undefined) ?? 'Big';
+        const railingY = slabBaseY + typed.slabThickness + railingHeight / 2;
 
         return (
         <group key={`floor-${index}`}>
@@ -163,8 +179,28 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
             rotationY={rotationY}
             balconyLeft={typed.balconyLeft}
             balconyRight={typed.balconyRight}
-            balconyWall={typed.balconyWall}
+            balconyWall={floorBalconyWall}
           />
+          {typed.balconyRailing === 'Glass' && typed.balconyLeft ? (
+            <GlassRailing
+              x={archBalconyXRight}
+              y={railingY}
+              z={railingZ}
+              width={typed.balconyWidth}
+              thickness={railingThickness}
+              rotationY={rotationY}
+            />
+          ) : null}
+          {typed.balconyRailing === 'Glass' && typed.balconyRight ? (
+            <GlassRailing
+              x={archBalconyXLeft}
+              y={railingY}
+              z={railingZ}
+              width={typed.balconyWidth}
+              thickness={railingThickness}
+              rotationY={rotationY}
+            />
+          ) : null}
           <Slab
             y={slabBaseY + typed.slabThickness / 2 + 0.01}
             z={slabOffsetZ}
@@ -173,7 +209,79 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
             height={typed.slabThickness}
             rotationY={rotationY}
           />
-          {typed.windowCoating === 'Arch' ? (
+          {floorWindowType === 'Big' ? (
+            <>
+              <WindowBig
+                x={overhangX + archGapX1}
+                y={slabBaseY + archHeight / 2}
+                z={windowZ}
+                width={archWidth}
+                height={archHeight}
+                rotationY={rotationY}
+              />
+              <WindowBig
+                x={overhangX + archGapX2}
+                y={slabBaseY + archHeight / 2}
+                z={windowZ}
+                width={archWidth}
+                height={archHeight}
+                rotationY={rotationY}
+              />
+              {typed.balconyLeft ? (
+                <WindowBig
+                  x={archBalconyXRight}
+                  y={slabBaseY + archHeight / 2}
+                  z={balconyWindowZ}
+                  width={typed.balconyWidth}
+                  height={archHeight}
+                  rotationY={rotationY}
+                />
+              ) : null}
+              {typed.balconyRight ? (
+                <WindowBig
+                  x={archBalconyXLeft}
+                  y={slabBaseY + archHeight / 2}
+                  z={balconyWindowZ}
+                  width={typed.balconyWidth}
+                  height={archHeight}
+                  rotationY={rotationY}
+                />
+              ) : null}
+            </>
+          ) : null}
+          {floorWindowType === 'Small' ? (
+            <>
+              <WindowSmall
+                x={overhangX + archGapX1}
+                y={slabBaseY + archHeight / 2}
+                z={windowZ}
+                rotationY={rotationY}
+              />
+              <WindowSmall
+                x={overhangX + archGapX2}
+                y={slabBaseY + archHeight / 2}
+                z={windowZ}
+                rotationY={rotationY}
+              />
+              {typed.balconyLeft ? (
+                <WindowSmall
+                  x={archBalconyXRight}
+                  y={slabBaseY + archHeight / 2}
+                  z={balconyWindowZ}
+                  rotationY={rotationY}
+                />
+              ) : null}
+              {typed.balconyRight ? (
+                <WindowSmall
+                  x={archBalconyXLeft}
+                  y={slabBaseY + archHeight / 2}
+                  z={balconyWindowZ}
+                  rotationY={rotationY}
+                />
+              ) : null}
+            </>
+          ) : null}
+          {floorWindowCoating === 'Arch' ? (
             <>
               <Arch
                 x={overhangX + archGapX1}
@@ -195,24 +303,58 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
               />
             </>
           ) : null}
-          {typed.balconyCoating === 'Arch' && typed.balconyLeft
+          {floorWindowCoating === 'Horizontal Strips' ? (
+            <>
+              <HorizontalStrips
+                x={overhangX + archGapX1}
+                y={slabBaseY + archHeight / 2}
+                z={coatingZ}
+                width={archWidth}
+                height={archHeight}
+                thickness={stripThickness}
+                spacing={stripSpacing}
+                rotationY={rotationY}
+              />
+              <HorizontalStrips
+                x={overhangX + archGapX2}
+                y={slabBaseY + archHeight / 2}
+                z={coatingZ}
+                width={archWidth}
+                height={archHeight}
+                thickness={stripThickness}
+                spacing={stripSpacing}
+                rotationY={rotationY}
+              />
+            </>
+          ) : null}
+          {floorWindowCoating === 'Vertical Strips' ? (
+            <>
+              <VerticalStrips
+                x={overhangX + archGapX1}
+                y={slabBaseY + archHeight / 2}
+                z={coatingZ}
+                width={archWidth}
+                height={archHeight}
+                thickness={stripThickness}
+                spacing={stripSpacing}
+                rotationY={rotationY}
+              />
+              <VerticalStrips
+                x={overhangX + archGapX2}
+                y={slabBaseY + archHeight / 2}
+                z={coatingZ}
+                width={archWidth}
+                height={archHeight}
+                thickness={stripThickness}
+                spacing={stripSpacing}
+                rotationY={rotationY}
+              />
+            </>
+          ) : null}
+          {floorBalconyCoating === 'Arch' && typed.balconyLeft
             ? balconyArchOffsets.map((offset) => (
               <Arch
                 key={`balcony-left-${index}-${offset}`}
-                x={archBalconyXLeft + offset}
-                y={slabBaseY + archHeight / 2}
-                z={coatingZ}
-                width={balconyArchWidth}
-                height={archHeight}
-                thickness={archThickness}
-                rotationY={rotationY}
-              />
-            ))
-            : null}
-          {typed.balconyCoating === 'Arch' && typed.balconyRight
-            ? balconyArchOffsets.map((offset) => (
-              <Arch
-                key={`balcony-right-${index}-${offset}`}
                 x={archBalconyXRight + offset}
                 y={slabBaseY + archHeight / 2}
                 z={coatingZ}
@@ -223,6 +365,68 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
               />
             ))
             : null}
+          {floorBalconyCoating === 'Horizontal Strips' && typed.balconyLeft ? (
+            <HorizontalStrips
+              x={archBalconyXRight}
+              y={slabBaseY + archHeight / 2}
+              z={coatingZ}
+              width={typed.balconyWidth}
+              height={archHeight}
+              thickness={stripThickness}
+              spacing={stripSpacing}
+              rotationY={rotationY}
+            />
+          ) : null}
+          {floorBalconyCoating === 'Vertical Strips' && typed.balconyLeft ? (
+            <VerticalStrips
+              x={archBalconyXRight}
+              y={slabBaseY + archHeight / 2}
+              z={coatingZ}
+              width={typed.balconyWidth}
+              height={archHeight}
+              thickness={stripThickness}
+              spacing={stripSpacing}
+              rotationY={rotationY}
+            />
+          ) : null}
+          {floorBalconyCoating === 'Arch' && typed.balconyRight
+            ? balconyArchOffsets.map((offset) => (
+              <Arch
+                key={`balcony-right-${index}-${offset}`}
+                x={archBalconyXLeft + offset}
+                y={slabBaseY + archHeight / 2}
+                z={coatingZ}
+                width={balconyArchWidth}
+                height={archHeight}
+                thickness={archThickness}
+                rotationY={rotationY}
+              />
+            ))
+            : null}
+          {floorBalconyCoating === 'Horizontal Strips' && typed.balconyRight ? (
+            <HorizontalStrips
+              x={archBalconyXLeft}
+              y={slabBaseY + archHeight / 2}
+              z={coatingZ}
+              width={typed.balconyWidth}
+              height={archHeight}
+              thickness={stripThickness}
+              spacing={stripSpacing}
+              rotationY={rotationY}
+            />
+          ) : null}
+          {floorBalconyCoating === 'Vertical Strips' && typed.balconyRight ? (
+            <VerticalStrips
+              x={archBalconyXLeft}
+              y={slabBaseY + archHeight / 2}
+              z={coatingZ}
+              width={typed.balconyWidth}
+              height={archHeight}
+              thickness={stripThickness}
+              spacing={stripSpacing}
+              rotationY={rotationY}
+            />
+          ) : null}
         </group>
         );
       })}

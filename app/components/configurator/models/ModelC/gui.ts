@@ -15,11 +15,10 @@ type Params = ParamValues & {
   balconyLeft: boolean;
   balconyRight: boolean;
   balconyWidth: number;
-  balconyWall: boolean;
   balconyRailing: string;
   windowWidth: number;
-  balconyCoating: string;
-  windowCoating: string;
+  stripHeight: number;
+  stripSpacing: number;
   groundSurface?: number;
   floorSurface?: number;
   totalSurface?: number;
@@ -32,6 +31,7 @@ export function buildModelCGui(
   onChange: (next: ParamValues) => void
 ) {
   const state = params as Params;
+  let floorFolders: GUI[] = [];
   const controls = gui.addFolder('Building');
   const floorsCtrl = controls.add(state, 'floors', 1, 10, 1).name('Number of Floors');
   const floorHeightCtrl = controls.add(state, 'floorHeight', 2, 6, 0.1).name('Floor Height');
@@ -66,20 +66,76 @@ export function buildModelCGui(
   const balconyLeftCtrl = balcony.add(state, 'balconyLeft').name('Balcony Left');
   const balconyRightCtrl = balcony.add(state, 'balconyRight').name('Balcony Right');
   const balconyWidthCtrl = balcony.add(state, 'balconyWidth', 0.5, 6, 0.1).name('Balcony Width');
-  const balconyWallCtrl = balcony.add(state, 'balconyWall').name('Balcony Wall');
   const balconyRailingCtrl = balcony.add(state, 'balconyRailing', ['Glass', 'Metal']).name('Balcony Railing');
   balcony.open();
 
   const coating = gui.addFolder('Coating');
-  const balconyCoatingCtrl = coating.add(state, 'balconyCoating', ['Arch', 'None']).name('Balcony Coating');
-  const windowCoatingCtrl = coating.add(state, 'windowCoating', ['Arch', 'None']).name('Window Coating');
+  const stripHeightCtrl = coating
+    .add(state, 'stripHeight', 0.02, 0.3, 0.01)
+    .name('Strip Height');
+  const stripSpacingCtrl = coating
+    .add(state, 'stripSpacing', 0.02, 0.5, 0.01)
+    .name('Strip Spacing');
+  const syncStripVisibility = () => {
+    const showStrips = Array.from({ length: state.floors }).some((_, index) => (
+      state[`windowCoating_${index}` as keyof Params] === 'Horizontal Strips'
+      || state[`windowCoating_${index}` as keyof Params] === 'Vertical Strips'
+      || state[`balconyCoating_${index}` as keyof Params] === 'Horizontal Strips'
+      || state[`balconyCoating_${index}` as keyof Params] === 'Vertical Strips'
+    ));
+    stripHeightCtrl.domElement.style.display = showStrips ? '' : 'none';
+    stripSpacingCtrl.domElement.style.display = showStrips ? '' : 'none';
+  };
+  syncStripVisibility();
   coating.open();
 
+  
   const sync = () => {
     state.totalHeight = Number(computeTotalHeight().toFixed(2));
     computeStats();
+    syncStripVisibility();
+    rebuildFloorPanels();
     onChange({ ...state });
   };
+
+
+  const rebuildFloorPanels = () => {
+    floorFolders.forEach((folder) => folder.destroy());
+    floorFolders = Array.from({ length: state.floors }).map((_, index) => {
+      const windowKey = `windowCoating_${index}` as keyof Params;
+      const balconyKey = `balconyCoating_${index}` as keyof Params;
+      const key = `balconyWall_${index}` as keyof Params;
+      const windowTypeKey = `windowType_${index}` as keyof Params;
+      if (state[windowKey] === undefined) {
+        state[windowKey] = 'Arch';
+      }
+      if (state[balconyKey] === undefined) {
+        state[balconyKey] = 'None';
+      }
+      if (state[key] === undefined) {
+        state[key] = true;
+      }
+      if (state[windowTypeKey] === undefined) {
+        state[windowTypeKey] = 'Big';
+      }
+      const floorFolder = gui.addFolder(`Floor ${index + 1}`);
+      floorFolder
+        .add(state, windowTypeKey, ['Big', 'Small'])
+        .name('Window Type')
+        .onChange(sync);
+      floorFolder
+        .add(state, windowKey, ['Arch', 'Horizontal Strips', 'Vertical Strips', 'None'])
+        .name('Window Coating')
+        .onChange(sync);
+      floorFolder
+        .add(state, balconyKey, ['Arch', 'Horizontal Strips', 'Vertical Strips', 'None'])
+        .name('Balcony Coating')
+        .onChange(sync);
+      floorFolder.add(state, key).name('Balcony Wall').onChange(sync);
+      return floorFolder;
+    });
+  };
+  rebuildFloorPanels();
 
   floorsCtrl.onChange(sync);
   floorHeightCtrl.onChange(sync);
@@ -92,8 +148,7 @@ export function buildModelCGui(
   balconyLeftCtrl.onChange(sync);
   balconyRightCtrl.onChange(sync);
   balconyWidthCtrl.onChange(sync);
-  balconyWallCtrl.onChange(sync);
   balconyRailingCtrl.onChange(sync);
-  balconyCoatingCtrl.onChange(sync);
-  windowCoatingCtrl.onChange(sync);
+  stripHeightCtrl.onChange(sync);
+  stripSpacingCtrl.onChange(sync);
 }
