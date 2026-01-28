@@ -13,9 +13,9 @@ type GlassRailingProps = {
 };
 
 const RAILING_HEIGHT = 0.9;
-const GLASS_COLOR = '#9ec9da';
+const GLASS_COLOR = '#3f3f3f';
 const GLASS_OPACITY = 0.35;
-const OUTLINE_COLOR = 0x2b2b2b;
+const OUTLINE_COLOR = 0xcfcfcf;
 const OUTLINE_OPACITY = 0.35;
 const OUTLINE_THRESHOLD = 30;
 

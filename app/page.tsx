@@ -164,25 +164,61 @@ export default function Home() {
             <div className="text-3xl font-black uppercase tracking-tight">
               Showcase GIFs
             </div>
-            <div className="grid gap-6 md:grid-cols-3">
-              {["GIF 01", "GIF 02", "GIF 03"].map((label) => (
-                <div
-                  key={label}
-                  className="rounded-3xl border border-[var(--border)] bg-[var(--background)] p-6"
-                >
-                  <div className="h-36 rounded-2xl border border-[var(--border)] bg-[var(--surface-strong)]">
-                    <div className="flex h-full items-center justify-center text-sm font-bold uppercase text-[var(--muted)]">
-                      {label}
+            <div className="flex flex-col gap-8">
+              {[
+                {
+                  title: "Urban Rhythm",
+                  description: "Urban.gif — parametric facade animation study.",
+                  image: "/images/urban.gif",
+                },
+                {
+                  title: "Light Strips",
+                  description: "Placeholder description for upcoming showcase.",
+                  image: "/images/placeholder.gif",
+                },
+                {
+                  title: "Material Flow",
+                  description: "Placeholder description for upcoming showcase.",
+                  image: "/images/placeholder.gif",
+                },
+              ].map((item, index) => {
+                const isReversed = index === 1;
+                return (
+                  <div
+                    key={item.title}
+                    className="flex flex-col gap-6 rounded-3xl border border-[var(--border)] bg-[var(--background)] p-6 md:flex-row md:items-center"
+                  >
+                    <div
+                      className={[
+                        "flex w-full md:w-1/2",
+                        isReversed ? "md:order-2" : "md:order-1",
+                      ].join(" ")}
+                    >
+                      <div className="relative h-52 w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-strong)]">
+                        <Image
+                          alt={item.title}
+                          className="h-full w-full object-cover"
+                          height={480}
+                          unoptimized
+                          src={item.image}
+                          width={720}
+                        />
+                      </div>
+                    </div>
+                    <div
+                      className={[
+                        "flex w-full flex-col gap-3 md:w-1/2",
+                        isReversed ? "md:order-1 md:text-right" : "md:order-2",
+                      ].join(" ")}
+                    >
+                      <div className="text-xl font-semibold">{item.title}</div>
+                      <div className="text-sm text-[var(--muted)]">
+                        {item.description}
+                      </div>
                     </div>
                   </div>
-                  <div className="mt-4 text-lg font-semibold">
-                    Description Title
-                  </div>
-                  <div className="text-sm text-[var(--muted)]">
-                    Short description of the visual.
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>

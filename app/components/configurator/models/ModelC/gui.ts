@@ -17,6 +17,8 @@ type Params = ParamValues & {
   balconyWidth: number;
   balconyRailing: string;
   windowWidth: number;
+  window_type: string;
+  balcony_window_type: string;
   stripHeight: number;
   stripSpacing: number;
   groundSurface?: number;
@@ -41,6 +43,10 @@ export function buildModelCGui(
   const roofWallHeightCtrl = controls.add(state, 'roofWallHeight', 0.2, 2.5, 0.1).name('Roof Wall Height');
   const slabCtrl = controls.add(state, 'slabThickness', 0.05, 0.5, 0.05).name('Slab Thickness');
   const windowWidthCtrl = controls.add(state, 'windowWidth', 0.5, 3, 0.1).name('Window Width');
+  const windowTypeCtrl = controls.add(state, 'window_type', ['Big', 'Small']).name('Window Type');
+  const balconyWindowTypeCtrl = controls
+    .add(state, 'balcony_window_type', ['Big', 'Small'])
+    .name('Balcony Window Type');
 
   const computeTotalHeight = () => (
     state.groundFloorHeight
@@ -83,6 +89,7 @@ export function buildModelCGui(
       || state[`balconyCoating_${index}` as keyof Params] === 'Horizontal Strips'
       || state[`balconyCoating_${index}` as keyof Params] === 'Vertical Strips'
     ));
+    coating.domElement.style.display = showStrips ? '' : 'none';
     stripHeightCtrl.domElement.style.display = showStrips ? '' : 'none';
     stripSpacingCtrl.domElement.style.display = showStrips ? '' : 'none';
   };
@@ -105,7 +112,6 @@ export function buildModelCGui(
       const windowKey = `windowCoating_${index}` as keyof Params;
       const balconyKey = `balconyCoating_${index}` as keyof Params;
       const key = `balconyWall_${index}` as keyof Params;
-      const windowTypeKey = `windowType_${index}` as keyof Params;
       if (state[windowKey] === undefined) {
         state[windowKey] = 'Arch';
       }
@@ -115,14 +121,7 @@ export function buildModelCGui(
       if (state[key] === undefined) {
         state[key] = true;
       }
-      if (state[windowTypeKey] === undefined) {
-        state[windowTypeKey] = 'Big';
-      }
       const floorFolder = gui.addFolder(`Floor ${index + 1}`);
-      floorFolder
-        .add(state, windowTypeKey, ['Big', 'Small'])
-        .name('Window Type')
-        .onChange(sync);
       floorFolder
         .add(state, windowKey, ['Arch', 'Horizontal Strips', 'Vertical Strips', 'None'])
         .name('Window Coating')
@@ -145,6 +144,8 @@ export function buildModelCGui(
   roofWallHeightCtrl.onChange(sync);
   slabCtrl.onChange(sync);
   windowWidthCtrl.onChange(sync);
+  windowTypeCtrl.onChange(sync);
+  balconyWindowTypeCtrl.onChange(sync);
   balconyLeftCtrl.onChange(sync);
   balconyRightCtrl.onChange(sync);
   balconyWidthCtrl.onChange(sync);

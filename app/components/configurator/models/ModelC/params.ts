@@ -16,6 +16,8 @@ export const modelCDefaults: ParamValues = {
   balconyWidth: 3,
   balconyRailing: 'Glass',
   windowWidth: 2,
+  window_type: 'Big',
+  balcony_window_type: 'Big',
   stripHeight: 0.08,
   stripSpacing: 0.15,
   balconyWall_0: true,
@@ -27,7 +29,4 @@ export const modelCDefaults: ParamValues = {
   balconyCoating_0: 'None',
   balconyCoating_1: 'None',
   balconyCoating_2: 'None',
-  windowType_0: 'Big',
-  windowType_1: 'Big',
-  windowType_2: 'Big',
 };

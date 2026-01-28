@@ -12,8 +12,8 @@ type OutlinedBoxProps = {
   castShadow?: boolean;
 };
 
-const BOX_COLOR = '#d1d1d1';
-const OUTLINE_COLOR = 0x2b2b2b;
+const BOX_COLOR = '#3f3f3f';
+const OUTLINE_COLOR = 0xcfcfcf;
 const OUTLINE_OPACITY = 0.5;
 const OUTLINE_THRESHOLD = 30;
 

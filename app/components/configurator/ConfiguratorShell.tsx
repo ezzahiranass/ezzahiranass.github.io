@@ -46,7 +46,10 @@ export default function ConfiguratorShell({ model }: ConfiguratorShellProps) {
   return (
     <div className="relative h-128 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-strong)]">
       <div ref={statsRef} className="absolute left-3 top-3 z-10" />
-      <div ref={guiRef} className="absolute right-3 top-3 z-10" />
+      <div
+        ref={guiRef}
+        className="absolute right-3 top-3 z-10 max-h-[calc(100%-24px)] overflow-auto"
+      />
       <Canvas
         shadows
         camera={{
@@ -56,7 +59,8 @@ export default function ConfiguratorShell({ model }: ConfiguratorShellProps) {
           far: 10000,
         }}
       >
-        <color attach="background" args={['#f2f2f2']} />
+        <color attach="background" args={['#3f3f3f']} />
+        <fog attach="fog" args={['#3f3f3f', 50, 500]} />
         <ambientLight intensity={0.6} />
         <directionalLight
           castShadow
@@ -70,6 +74,7 @@ export default function ConfiguratorShell({ model }: ConfiguratorShellProps) {
           shadow-camera-top={5}
           shadow-camera-bottom={-5}
         />
+        <gridHelper args={[400, 200, 0x5a5a5a, 0x2a2a2a]} position={[0, 0, 0]} />
         {model.render(params)}
         <OrbitControls
           makeDefault

@@ -1,7 +1,7 @@
 'use client';
 
 import { useGLTF } from '@react-three/drei';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import type { ParamValues } from '../../types';
 import Roof from './parts/roof';
@@ -17,6 +17,15 @@ import GlassRailing from './parts/glassRailing';
 import WindowBig from './parts/windowBig';
 import WindowSmall from './parts/windowSmall';
 
+const MAN_MODELS = [
+  '/assets/man1.glb',
+  '/assets/man2.glb',
+  '/assets/man3.glb',
+  '/assets/man4.glb',
+  '/assets/man5.glb',
+  '/assets/man6.glb',
+];
+
 type Params = ParamValues & {
   floors: number;
   floorHeight: number;
@@ -31,13 +40,136 @@ type Params = ParamValues & {
   balconyWidth: number;
   balconyRailing: string;
   windowWidth: number;
+  window_type: string;
+  balcony_window_type: string;
   stripHeight: number;
   stripSpacing: number;
 };
 
+type HumanModelProps = {
+  src: string;
+  position: [number, number, number];
+  rotationY: number;
+  scale?: number;
+};
+
+type GroundAssetProps = {
+  src: string;
+  position: [number, number, number];
+  rotationY: number;
+  scale?: number;
+};
+
+function GroundAsset({
+  src,
+  position,
+  rotationY,
+  scale = 1,
+}: GroundAssetProps) {
+  const { scene } = useGLTF(src);
+  const cloned = useMemo(() => scene.clone(true), [scene]);
+
+  useEffect(() => {
+    cloned.traverse((child) => {
+      if (!(child instanceof THREE.Mesh)) return;
+      const material = child.material;
+      if (Array.isArray(material)) {
+        material.forEach((mat) => {
+          mat.polygonOffset = true;
+          mat.polygonOffsetFactor = 1;
+          mat.polygonOffsetUnits = 1;
+        });
+      } else if (material) {
+        material.polygonOffset = true;
+        material.polygonOffsetFactor = 1;
+        material.polygonOffsetUnits = 1;
+      }
+
+      if (child.geometry) {
+        const wireGeom = new THREE.EdgesGeometry(child.geometry, 50);
+        const wireMat = new THREE.LineBasicMaterial({
+          color: 0xcfcfcf,
+          transparent: true,
+          opacity: 0.25,
+        });
+        const wireframe = new THREE.LineSegments(wireGeom, wireMat);
+        wireframe.name = '__wireframe_overlay';
+        wireframe.renderOrder = 1;
+        child.add(wireframe);
+      }
+    });
+
+    return () => {
+      cloned.traverse((child) => {
+        if (!(child instanceof THREE.Mesh)) return;
+        child.children
+          .filter((node) => node.name === '__wireframe_overlay')
+          .forEach((node) => {
+            child.remove(node);
+            const line = node as THREE.LineSegments;
+            line.geometry.dispose();
+            if (Array.isArray(line.material)) {
+              line.material.forEach((mat) => mat.dispose());
+            } else {
+              line.material.dispose();
+            }
+          });
+      });
+    };
+  }, [cloned]);
+
+  return (
+    <group position={[0, position[1], 0]} rotation={[0, rotationY, 0]} scale={scale}>
+      <group position={[position[0], 0, position[2]]}>
+        <primitive object={cloned} />
+      </group>
+    </group>
+  );
+}
+
+function HumanModel({
+  src,
+  position,
+  rotationY,
+  scale = 1,
+}: HumanModelProps) {
+  const { scene } = useGLTF(src);
+  const cloned = useMemo(() => scene.clone(true), [scene]);
+
+  useEffect(() => {
+    cloned.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        const replacement = new THREE.MeshStandardMaterial({
+          color: '#ffffff',
+          roughness: 0.7,
+          metalness: 0.0,
+        });
+        if (Array.isArray(child.material)) {
+          child.material.forEach((mat) => mat.dispose());
+        } else if (child.material) {
+          child.material.dispose();
+        }
+        child.material = replacement;
+      }
+    });
+  }, [cloned]);
+
+  return (
+    <group position={[0, position[1], 0]} rotation={[0, rotationY, 0]} scale={scale}>
+      <group position={[position[0], 0, position[2]]}>
+        <primitive object={cloned} />
+      </group>
+    </group>
+  );
+}
+
 export function ModelCRenderer({ params }: { params: ParamValues }) {
   const typed = params as Params;
   const { scene } = useGLTF('/assets/city_rabat.glb');
+  const defaultMaterialColor = new THREE.Color('#3f3f3f');
+  const wireframeColor = 0xcfcfcf;
   const rotationY = (typed.rotationY * Math.PI) / 180;
   const sizeX = 17.5;
   const slabCount = typed.floors + 1;
@@ -86,18 +218,96 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
   const railingZ = overhangZ - overhangLength / 2 + railingThickness / 2;
   const windowZ = -sizeZ / 2 - typed.overhang + 0.02;
   const balconyWindowZ = -sizeZ / 2 + 0.02;
+  const frontDoorX = -2  + sizeX / 2;
+  const leftEdgeX = 1 -sizeX / 2;
+  const garageRightLimit = frontDoorX - 2;
+  const garageSpan = Math.max(garageRightLimit - leftEdgeX, 0.1);
+  const garageDoorX1 = leftEdgeX + garageSpan * (1 / 6);
+  const garageDoorX2 = leftEdgeX + garageSpan * (3 / 6);
+  const garageDoorX3 = leftEdgeX + garageSpan * (5 / 6);
+  const humanPlacements = useMemo(() => {
+    if (typed.overhang < 0.4) return [];
+    const placements: Array<HumanModelProps & { key: string }> = [];
+    const balconySurface = typed.overhang * typed.balconyWidth;
+    const maxPeople = Math.min(Math.floor(balconySurface / 1.2), 6);
+    if (maxPeople < 1) return [];
+    const pickModel = () => MAN_MODELS[Math.floor(Math.random() * MAN_MODELS.length)];
+    const randomCount = () => 1 + Math.floor(Math.random() * maxPeople);
+    const xMargin = Math.max(typed.balconyWidth * 0.15, 0.2);
+    const zMargin = Math.max(typed.overhang * 0.15, 0.15);
+    const xJitterRange = Math.max(typed.balconyWidth / 2 - xMargin, 0);
+    const humanOverhangZ = -overhangZ;
+    const zMin = humanOverhangZ - typed.overhang / 2 + zMargin;
+    const zMax = humanOverhangZ + typed.overhang / 2 - zMargin;
+
+    for (let index = 0; index < typed.floors; index += 1) {
+      const slabBaseY = typed.groundFloorHeight
+        + index * (typed.floorHeight + typed.slabThickness);
+      const floorBaseY = slabBaseY + typed.slabThickness;
+      const y = floorBaseY + 0.02;
+      if (typed.balconyLeft) {
+        const count = randomCount();
+        for (let i = 0; i < count; i += 1) {
+          const x = archBalconyXLeft + (Math.random() - 0.5) * 2 * xJitterRange;
+          const z = zMin + Math.random() * (zMax - zMin);
+          placements.push({
+            key: `human-left-${index}-${i}`,
+            src: pickModel(),
+            position: [x, y, z],
+            rotationY: rotationY + Math.PI,
+          });
+        }
+      }
+      if (typed.balconyRight) {
+        const count = randomCount();
+        for (let i = 0; i < count; i += 1) {
+          const x = archBalconyXRight + (Math.random() - 0.5) * 2 * xJitterRange;
+          const z = zMin + Math.random() * (zMax - zMin);
+          placements.push({
+            key: `human-right-${index}-${i}`,
+            src: pickModel(),
+            position: [x, y, z],
+            rotationY: rotationY + Math.PI,
+          });
+        }
+      }
+    }
+
+    return placements;
+  }, [
+    typed.overhang,
+    typed.floors,
+    typed.groundFloorHeight,
+    typed.floorHeight,
+    typed.slabThickness,
+    typed.balconyLeft,
+    typed.balconyRight,
+    typed.balconyWidth,
+    archBalconyXLeft,
+    archBalconyXRight,
+    overhangZ,
+    rotationY,
+  ]);
   useEffect(() => {
     const overlayGroup = new THREE.Group();
     scene.traverse((child) => {
       if (!(child instanceof THREE.Mesh)) return;
       const material = child.material;
+      const applyDefaultMaterial = (mat: THREE.Material) => {
+        const colored = mat as THREE.MeshStandardMaterial;
+        if (colored.color) {
+          colored.color.copy(defaultMaterialColor);
+        }
+      };
       if (Array.isArray(material)) {
         material.forEach((mat) => {
+          applyDefaultMaterial(mat);
           mat.polygonOffset = true;
           mat.polygonOffsetFactor = 1;
           mat.polygonOffsetUnits = 1;
         });
       } else if (material) {
+        applyDefaultMaterial(material);
         material.polygonOffset = true;
         material.polygonOffsetFactor = 1;
         material.polygonOffsetUnits = 1;
@@ -106,7 +316,7 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
       if (child.geometry) {
         const wireGeom = new THREE.EdgesGeometry(child.geometry, 30);
         const wireMat = new THREE.LineBasicMaterial({
-          color: 0x2b2b2b,
+          color: wireframeColor,
           transparent: true,
           opacity: 0.5,
         });
@@ -142,6 +352,26 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
   return (
     <>
       <primitive object={scene} position={[0, -0.45, 0]} />
+      <GroundAsset
+        src="/assets/door1.glb"
+        position={[frontDoorX, 0, -sizeZ / 2]}
+        rotationY={rotationY}
+      />
+      <GroundAsset
+        src="/assets/garage_door.glb"
+        position={[garageDoorX1, 0, -sizeZ / 2]}
+        rotationY={rotationY}
+      />
+      <GroundAsset
+        src="/assets/garage_door.glb"
+        position={[garageDoorX2, 0, -sizeZ / 2]}
+        rotationY={rotationY}
+      />
+      <GroundAsset
+        src="/assets/garage_door.glb"
+        position={[garageDoorX3, 0, -sizeZ / 2]}
+        rotationY={rotationY}
+      />
       <GroundFloor
         width={sizeX}
         length={sizeZ}
@@ -155,7 +385,8 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
         const floorBalconyWall = typed[`balconyWall_${index}`] !== false;
         const floorBalconyCoating = (typed[`balconyCoating_${index}`] as string | undefined) ?? 'None';
         const floorWindowCoating = (typed[`windowCoating_${index}`] as string | undefined) ?? 'None';
-        const floorWindowType = (typed[`windowType_${index}`] as string | undefined) ?? 'Big';
+        const floorWindowType = typed.window_type ?? 'Big';
+        const balconyWindowType = typed.balcony_window_type ?? 'Big';
         const railingY = slabBaseY + typed.slabThickness + railingHeight / 2;
 
         return (
@@ -227,7 +458,7 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
                 height={archHeight}
                 rotationY={rotationY}
               />
-              {typed.balconyLeft ? (
+              {typed.balconyLeft && balconyWindowType === 'Big' ? (
                 <WindowBig
                   x={archBalconyXRight}
                   y={slabBaseY + archHeight / 2}
@@ -237,7 +468,7 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
                   rotationY={rotationY}
                 />
               ) : null}
-              {typed.balconyRight ? (
+              {typed.balconyRight && balconyWindowType === 'Big' ? (
                 <WindowBig
                   x={archBalconyXLeft}
                   y={slabBaseY + archHeight / 2}
@@ -263,6 +494,50 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
                 z={windowZ}
                 rotationY={rotationY}
               />
+              {typed.balconyLeft && balconyWindowType === 'Small' ? (
+                <WindowSmall
+                  x={archBalconyXRight}
+                  y={slabBaseY + archHeight / 2}
+                  z={balconyWindowZ}
+                  rotationY={rotationY}
+                />
+              ) : null}
+              {typed.balconyRight && balconyWindowType === 'Small' ? (
+                <WindowSmall
+                  x={archBalconyXLeft}
+                  y={slabBaseY + archHeight / 2}
+                  z={balconyWindowZ}
+                  rotationY={rotationY}
+                />
+              ) : null}
+            </>
+          ) : null}
+          {balconyWindowType === 'Big' && floorWindowType !== 'Big' ? (
+            <>
+              {typed.balconyLeft ? (
+                <WindowBig
+                  x={archBalconyXRight}
+                  y={slabBaseY + archHeight / 2}
+                  z={balconyWindowZ}
+                  width={typed.balconyWidth}
+                  height={archHeight}
+                  rotationY={rotationY}
+                />
+              ) : null}
+              {typed.balconyRight ? (
+                <WindowBig
+                  x={archBalconyXLeft}
+                  y={slabBaseY + archHeight / 2}
+                  z={balconyWindowZ}
+                  width={typed.balconyWidth}
+                  height={archHeight}
+                  rotationY={rotationY}
+                />
+              ) : null}
+            </>
+          ) : null}
+          {balconyWindowType === 'Small' && floorWindowType !== 'Small' ? (
+            <>
               {typed.balconyLeft ? (
                 <WindowSmall
                   x={archBalconyXRight}
@@ -479,8 +754,20 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
         overhang={typed.overhang}
         roofWallHeight={typed.roofWallHeight}
       />
+      {humanPlacements.map((human) => (
+        <HumanModel
+          key={human.key}
+          src={human.src}
+          position={human.position}
+          rotationY={human.rotationY}
+          scale={human.scale}
+        />
+      ))}
     </>
   );
 }
 
 useGLTF.preload('/assets/city_rabat.glb');
+useGLTF.preload('/assets/door1.glb');
+useGLTF.preload('/assets/garage_door.glb');
+MAN_MODELS.forEach((model) => useGLTF.preload(model));
