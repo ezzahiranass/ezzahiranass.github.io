@@ -5,12 +5,13 @@ import experienceData from "../public/data/experience.json";
 import educationData from "../public/data/education.json";
 import ThemeToggle from "./components/theme/ThemeToggle";
 import ConfiguratorSection from "./components/configurator/ConfiguratorSection";
+import Image from "next/image";
 
 export default function Home() {
   return (
     <div className="relative min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <header className="fixed inset-x-0 top-0 z-50 bg-[var(--background)]/80 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
+      <header className="fixed inset-x-0 top-0 z-50 h-[var(--nav-height)] bg-[var(--background)]/80 backdrop-blur-md">
+        <div className="mx-auto flex h-full w-full max-w-6xl items-center justify-between px-6 py-4">
           <div className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--foreground)]">
             Your Name
           </div>
@@ -43,6 +44,51 @@ export default function Home() {
           <div className="absolute inset-0">
             <ThreeBackground />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(0,0,0,0.08),_transparent_55%)]" />
+          </div>
+          <Image
+            alt="Paper border"
+            className="pointer-events-none absolute left-0 right-0 top-[var(--nav-height)] z-30 w-full select-none"
+            height={120}
+            unoptimized
+            src="/images/paper-border.png"
+            width={2400}
+          />
+          <div
+            className="pointer-events-none absolute inset-0 z-[2] opacity-55 text-[var(--foreground)]"
+            style={{
+              backgroundImage:
+                "linear-gradient(to right, color-mix(in oklab, currentColor 28%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in oklab, currentColor 28%, transparent) 1px, transparent 1px)",
+              backgroundSize: "64px 64px, 64px 64px",
+              backgroundPosition: "center",
+              maskImage:
+                "linear-gradient(to right, transparent, black 14%, black 86%, transparent), linear-gradient(to bottom, transparent, black 14%, black 86%, transparent)",
+              WebkitMaskImage:
+                "linear-gradient(to right, transparent, black 14%, black 86%, transparent), linear-gradient(to bottom, transparent, black 14%, black 86%, transparent)",
+              maskComposite: "intersect",
+              WebkitMaskComposite: "source-in",
+              maskSize: "100% 100%",
+              WebkitMaskSize: "100% 100%",
+            }}
+          />
+          <div className="cutout-enter group absolute bottom-0 right-0 z-20 w-[200px] sm:w-[200px] md:w-[500px] lg:w-[500px]">
+            <div className="relative h-[200px] w-[200px] transition-transform duration-150 ease-out group-hover:scale-105 sm:h-[200px] sm:w-[200px] md:h-[500px] md:w-[500px] lg:h-[500px] lg:w-[500px]">
+              <Image
+                alt="Cutout detail"
+                className="pointer-events-none absolute inset-0 h-full w-full select-none opacity-100 group-hover:opacity-0"
+                height={500}
+                unoptimized
+                src="/images/cutout3.png"
+                width={500}
+              />
+              <Image
+                alt="Cutout detail hover"
+                className="pointer-events-none absolute inset-0 h-full w-full select-none opacity-0 group-hover:opacity-100"
+                height={500}
+                unoptimized
+                src="/images/cutout2.png"
+                width={500}
+              />
+            </div>
           </div>
           <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-20 text-[var(--foreground)]">
             <h1 className="max-w-2xl text-5xl font-black uppercase tracking-tight">
