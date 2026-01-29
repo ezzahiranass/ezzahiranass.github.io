@@ -21,6 +21,7 @@ type Params = ParamValues & {
   balcony_window_type: string;
   stripHeight: number;
   stripSpacing: number;
+  setback: number;
   groundSurface?: number;
   floorSurface?: number;
   totalSurface?: number;
@@ -40,6 +41,7 @@ export function buildModelCGui(
   const groundHeightCtrl = controls.add(state, 'groundFloorHeight', 2, 8, 0.1).name('Ground Floor Height');
   const roofHeightCtrl = controls.add(state, 'roofHeight', 0.5, 6, 0.1).name('Roof Height');
   const overhangCtrl = controls.add(state, 'overhang', 0, 3, 0.1).name('Overhang');
+  const setbackCtrl = controls.add(state, 'setback', 0, 10, 0.1).name('Road Setback');
   const roofWallHeightCtrl = controls.add(state, 'roofWallHeight', 0.2, 2.5, 0.1).name('Roof Wall Height');
   const slabCtrl = controls.add(state, 'slabThickness', 0.05, 0.5, 0.05).name('Slab Thickness');
   const windowWidthCtrl = controls.add(state, 'windowWidth', 0.5, 3, 0.1).name('Window Width');
@@ -141,6 +143,7 @@ export function buildModelCGui(
   groundHeightCtrl.onChange(sync);
   roofHeightCtrl.onChange(sync);
   overhangCtrl.onChange(sync);
+  setbackCtrl.onChange(sync);
   roofWallHeightCtrl.onChange(sync);
   slabCtrl.onChange(sync);
   windowWidthCtrl.onChange(sync);

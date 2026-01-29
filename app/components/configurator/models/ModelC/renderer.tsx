@@ -44,6 +44,7 @@ type Params = ParamValues & {
   balcony_window_type: string;
   stripHeight: number;
   stripSpacing: number;
+  setback: number;
 };
 
 type HumanModelProps = {
@@ -57,7 +58,11 @@ type GroundAssetProps = {
   src: string;
   position: [number, number, number];
   rotationY: number;
-  scale?: number;
+  scale?: number | [number, number, number];
+  materialTone?: 'default' | 'black';
+  rotateInPlace?: boolean;
+  localRotationY?: number;
+  localScale?: [number, number, number];
 };
 
 function GroundAsset({
@@ -65,9 +70,23 @@ function GroundAsset({
   position,
   rotationY,
   scale = 1,
+  materialTone = 'default',
+  rotateInPlace = false,
+  localRotationY = 0,
+  localScale,
 }: GroundAssetProps) {
   const { scene } = useGLTF(src);
   const cloned = useMemo(() => scene.clone(true), [scene]);
+  const materialColor = useMemo(
+    () => (materialTone === 'black' ? new THREE.Color('#111111') : null),
+    [materialTone]
+  );
+  const localCenter = useMemo(() => {
+    const box = new THREE.Box3().setFromObject(cloned);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+    return center;
+  }, [cloned]);
 
   useEffect(() => {
     cloned.traverse((child) => {
@@ -75,11 +94,21 @@ function GroundAsset({
       const material = child.material;
       if (Array.isArray(material)) {
         material.forEach((mat) => {
+          if (materialColor && 'color' in mat) {
+            (mat as THREE.MeshStandardMaterial).color.copy(materialColor);
+            (mat as THREE.MeshStandardMaterial).roughness = 0.7;
+            (mat as THREE.MeshStandardMaterial).metalness = 0.05;
+          }
           mat.polygonOffset = true;
           mat.polygonOffsetFactor = 1;
           mat.polygonOffsetUnits = 1;
         });
       } else if (material) {
+        if (materialColor && 'color' in material) {
+          (material as THREE.MeshStandardMaterial).color.copy(materialColor);
+          (material as THREE.MeshStandardMaterial).roughness = 0.7;
+          (material as THREE.MeshStandardMaterial).metalness = 0.05;
+        }
         material.polygonOffset = true;
         material.polygonOffsetFactor = 1;
         material.polygonOffsetUnits = 1;
@@ -118,9 +147,25 @@ function GroundAsset({
     };
   }, [cloned]);
 
+  if (rotateInPlace) {
+    const centerOffset = new THREE.Vector3(-localCenter.x, 0, -localCenter.z);
+    const innerScale = localScale ?? [1, 1, 1];
+    return (
+      <group position={[0, position[1], 0]} rotation={[0, rotationY, 0]} scale={scale}>
+        <group position={[position[0], 0, position[2]]}>
+          <group rotation={[0, localRotationY, 0]} scale={innerScale}>
+            <group position={[centerOffset.x, centerOffset.y, centerOffset.z]}>
+              <primitive object={cloned} />
+            </group>
+          </group>
+        </group>
+      </group>
+    );
+  }
+
   return (
     <group position={[0, position[1], 0]} rotation={[0, rotationY, 0]} scale={scale}>
-      <group position={[position[0], 0, position[2]]}>
+      <group position={[position[0], 0, position[2]]} scale={localScale ?? [1, 1, 1]}>
         <primitive object={cloned} />
       </group>
     </group>
@@ -225,6 +270,65 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
   const garageDoorX1 = leftEdgeX + garageSpan * (1 / 6);
   const garageDoorX2 = leftEdgeX + garageSpan * (3 / 6);
   const garageDoorX3 = leftEdgeX + garageSpan * (5 / 6);
+  const garageDoorScaleY = Math.max(typed.groundFloorHeight/2, 0.1);
+  const awningY = Math.max(typed.groundFloorHeight, 0);
+  const potXLeft = -4 + sizeX / 2;
+  const potXRight = -garageDoorX3 - 4.8;
+  const plantPotPlacements = useMemo(() => {
+    const placements: Array<{ key: string; position: [number, number, number] }> = [];
+    const baseZ =-1.2 - sizeZ / 2;
+    const spacingZ = 2.3;
+    const rows = Math.max(1, Math.min(4, Math.floor(typed.setback / spacingZ) + 1));
+    for (let i = 0; i < rows; i += 1) {
+      const z = baseZ - i * spacingZ;
+      placements.push({ key: `pot-left-${i}`, position: [potXLeft, 0, z] });
+      placements.push({ key: `pot-right-${i}`, position: [potXRight, 0, z] });
+    }
+    return placements;
+  }, [potXLeft, potXRight, sizeZ, typed.setback]);
+  const lastPotPlacements = useMemo(() => {
+    const baseZ = -1.2 - sizeZ / 2;
+    const spacingZ = 2.3;
+    const rows = Math.max(1, Math.min(4, Math.floor(typed.setback / spacingZ) + 1));
+    const lastZ = baseZ - rows * spacingZ +0.8;
+    return [
+      { key: 'last-pot-left', position: [potXLeft-0.9, 0, lastZ] as [number, number, number] },
+      { key: 'last-pot-right', position: [potXRight+0.9, 0, lastZ] as [number, number, number] },
+      { key: 'last-pot-left-2', position: [potXLeft-0.9-2.2, 0, lastZ] as [number, number, number] },
+      { key: 'last-pot-right-2', position: [potXRight+0.9+2.2, 0, lastZ] as [number, number, number] },
+      // { key: 'last-pot-left-3', position: [potXLeft-0.9-2.2-2.2, 0, lastZ] as [number, number, number] },
+      // { key: 'last-pot-right-3', position: [potXRight+0.9+2.2+2.2, 0, lastZ] as [number, number, number] },
+    ];
+  }, [potXLeft, potXRight, sizeZ, typed.setback]);
+  const tablePlacements = useMemo(() => {
+    const placements: Array<{ key: string; position: [number, number, number] }> = [];
+    const xMin = 2-sizeX / 2;
+    const xMax = -5.5+sizeX / 2;
+    const zMax = -1.5-sizeZ / 2;
+    const zMin = -sizeZ / 2 - typed.setback;
+    const tableSpacingZ = 2.0;
+    const zSpan = Math.max(zMax - zMin, 0);
+    const cols = Math.max(2, Math.min(4, Math.floor(zSpan / tableSpacingZ) + 1));
+    const xSpan = xMax - xMin;
+    const xPositions: [number, number, number] = [
+      xMin + xSpan * 0.2,
+      xMin + xSpan * 0.5,
+      xMin + xSpan * 0.8,
+    ];
+    for (let col = 0; col < cols; col += 1) {
+      const z = zMax - col * tableSpacingZ;
+      if (z < zMin - 0.001) break;
+      for (let row = 0; row < 3; row += 1) {
+        const jitterX = (Math.random() - 0.5) * 0.4;
+        const jitterZ = (Math.random() - 0.5) * 0.2;
+        placements.push({
+          key: `table-${row}-${col}`,
+          position: [xPositions[row] + jitterX, 0, z + jitterZ],
+        });
+      }
+    }
+    return placements;
+  }, [sizeX, sizeZ, typed.setback]);
   const humanPlacements = useMemo(() => {
     if (typed.overhang < 0.4) return [];
     const placements: Array<HumanModelProps & { key: string }> = [];
@@ -361,17 +465,57 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
         src="/assets/garage_door.glb"
         position={[garageDoorX1, 0, -sizeZ / 2]}
         rotationY={rotationY}
+        scale={[1, garageDoorScaleY/2.5, 1]}
       />
       <GroundAsset
         src="/assets/garage_door.glb"
         position={[garageDoorX2, 0, -sizeZ / 2]}
         rotationY={rotationY}
+        scale={[1, garageDoorScaleY/2.5, 1]}
       />
       <GroundAsset
         src="/assets/garage_door.glb"
         position={[garageDoorX3, 0, -sizeZ / 2]}
         rotationY={rotationY}
+        scale={[1, garageDoorScaleY/2.5, 1]}
       />
+      <GroundAsset
+        src="/assets/awning.glb"
+        position={[garageDoorX2, awningY-1.7, -sizeZ / 2]}
+        rotationY={rotationY}
+        materialTone="black"
+        localScale={[1, 1, Math.max(typed.setback, 0.1)]}
+        rotateInPlace
+      />
+      {plantPotPlacements.map((pot) => (
+        <GroundAsset
+          key={pot.key}
+          src="/assets/plant_pot.glb"
+          position={pot.position}
+          rotationY={rotationY}
+          materialTone="black"
+        />
+      ))}
+      {lastPotPlacements.map((pot) => (
+        <GroundAsset
+          key={pot.key}
+          src="/assets/plant_pot.glb"
+          position={pot.position}
+          rotationY={rotationY}
+          localRotationY={Math.PI / 2}
+          materialTone="black"
+          rotateInPlace
+        />
+      ))}
+      {tablePlacements.map((table) => (
+        <GroundAsset
+          key={table.key}
+          src="/assets/table_4.glb"
+          position={table.position}
+          rotationY={rotationY}
+          materialTone="black"
+        />
+      ))}
       <GroundFloor
         width={sizeX}
         length={sizeZ}
@@ -770,4 +914,7 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
 useGLTF.preload('/assets/city_rabat.glb');
 useGLTF.preload('/assets/door1.glb');
 useGLTF.preload('/assets/garage_door.glb');
+useGLTF.preload('/assets/awning.glb');
+useGLTF.preload('/assets/plant_pot.glb');
+useGLTF.preload('/assets/table_4.glb');
 MAN_MODELS.forEach((model) => useGLTF.preload(model));

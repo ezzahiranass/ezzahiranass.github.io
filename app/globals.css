@@ -40,6 +40,15 @@ body {
   animation: cutout-enter 600ms ease-out 120ms both;
 }
 
+.cutout-motion {
+  transform: translateX(var(--cutout-shift, 0));
+  transition: transform 150ms ease-out;
+}
+
+.group:hover .cutout-motion {
+  transform: translateX(var(--cutout-shift, 0)) scale(1.05);
+}
+
 @keyframes cutout-enter {
   from {
     opacity: 0;

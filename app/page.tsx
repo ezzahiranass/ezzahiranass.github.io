@@ -6,6 +6,7 @@ import educationData from "../public/data/education.json";
 import ThemeToggle from "./components/theme/ThemeToggle";
 import ConfiguratorSection from "./components/configurator/ConfiguratorSection";
 import Image from "next/image";
+import CutoutHero from "./components/landing/CutoutHero";
 
 export default function Home() {
   return (
@@ -40,7 +41,10 @@ export default function Home() {
       </header>
 
       <main>
-        <section className="relative flex min-h-screen w-full items-center overflow-hidden bg-[var(--background)] pt-24">
+        <section
+          id="hero"
+          className="relative flex min-h-screen w-full items-center overflow-hidden bg-[var(--background)] pt-24"
+        >
           <div className="absolute inset-0">
             <ThreeBackground />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(0,0,0,0.08),_transparent_55%)]" />
@@ -70,26 +74,7 @@ export default function Home() {
               WebkitMaskSize: "100% 100%",
             }}
           />
-          <div className="cutout-enter group absolute bottom-0 right-0 z-20 w-[200px] sm:w-[200px] md:w-[500px] lg:w-[500px]">
-            <div className="relative h-[200px] w-[200px] transition-transform duration-150 ease-out group-hover:scale-105 sm:h-[200px] sm:w-[200px] md:h-[500px] md:w-[500px] lg:h-[500px] lg:w-[500px]">
-              <Image
-                alt="Cutout detail"
-                className="pointer-events-none absolute inset-0 h-full w-full select-none opacity-100 group-hover:opacity-0"
-                height={500}
-                unoptimized
-                src="/images/cutout3.png"
-                width={500}
-              />
-              <Image
-                alt="Cutout detail hover"
-                className="pointer-events-none absolute inset-0 h-full w-full select-none opacity-0 group-hover:opacity-100"
-                height={500}
-                unoptimized
-                src="/images/cutout2.png"
-                width={500}
-              />
-            </div>
-          </div>
+          <CutoutHero />
           <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-20 text-[var(--foreground)]">
             <h1 className="max-w-2xl text-5xl font-black uppercase tracking-tight">
               DESIGN THROUGH TECHNOLOGY
