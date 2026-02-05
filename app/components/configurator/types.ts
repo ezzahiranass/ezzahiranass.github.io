@@ -1,6 +1,7 @@
 'use client';
 
 import type GUI from 'lil-gui';
+import type { ReactElement } from 'react';
 
 export type ParamValue = boolean | number | string;
 export type ParamValues = Record<string, ParamValue>;
@@ -13,7 +14,7 @@ export type ModelDefinition = {
     position: [number, number, number];
     fov?: number;
   };
-  render: (params: ParamValues) => JSX.Element;
+  render: (params: ParamValues) => ReactElement;
   buildGui: (
     gui: GUI,
     params: ParamValues,
