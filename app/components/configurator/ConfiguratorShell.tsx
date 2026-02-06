@@ -4,6 +4,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { useEffect, useRef, useState } from 'react';
 import GUI from 'lil-gui';
+import * as THREE from 'three';
 import type { ModelDefinition, ParamValues } from './types';
 
 type ConfiguratorShellProps = {
@@ -78,9 +79,14 @@ export default function ConfiguratorShell({ model }: ConfiguratorShellProps) {
         {model.render(params)}
         <OrbitControls
           makeDefault
-          enablePan
+          enablePan={false}
           enableZoom
           enableRotate
+          mouseButtons={{
+            LEFT: THREE.MOUSE.NONE,
+            MIDDLE: THREE.MOUSE.DOLLY,
+            RIGHT: THREE.MOUSE.ROTATE,
+          }}
           maxDistance={300}
         />
       </Canvas>
