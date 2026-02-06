@@ -37,6 +37,40 @@ export default function SkillsCarousel({
     }
   }, []);
 
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    let rafId = 0;
+    let isPaused = false;
+
+    const handleEnter = () => {
+      isPaused = true;
+    };
+
+    const handleLeave = () => {
+      isPaused = false;
+    };
+
+    scroller.addEventListener('mouseenter', handleEnter);
+    scroller.addEventListener('mouseleave', handleLeave);
+
+    const step = () => {
+      if (!isPaused) {
+        scroller.scrollLeft += 0.5;
+      }
+      rafId = window.requestAnimationFrame(step);
+    };
+
+    rafId = window.requestAnimationFrame(step);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      scroller.removeEventListener('mouseenter', handleEnter);
+      scroller.removeEventListener('mouseleave', handleLeave);
+    };
+  }, []);
+
   const handleScroll = () => {
     const scroller = scrollerRef.current;
     if (!scroller || isAdjustingRef.current) return;

@@ -137,8 +137,8 @@ def main():
     script_dir = Path(__file__).parent.absolute()
     
     # Set paths relative to project root
-    pdf_path = script_dir / "public" / "Portfolio_EzzahirAnass_2024.pdf"
-    output_dir = script_dir / "public" / "pdf-pages"
+    pdf_path = script_dir / "Portfolio_EzzahirAnass_2026.pdf"
+    output_dir = script_dir / "pdf-pages"
     
     # Convert PDF
     success = convert_pdf_to_images(

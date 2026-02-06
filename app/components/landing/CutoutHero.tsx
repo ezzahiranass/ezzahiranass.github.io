@@ -4,13 +4,26 @@ import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { assetPath } from '@/app/lib/assetPath';
 
-export default function CutoutHero() {
+type CutoutHeroProps = {
+  enableMotion?: boolean;
+  anchorId?: string;
+};
+
+export default function CutoutHero({ enableMotion = true, anchorId = 'hero' }: CutoutHeroProps) {
   const motionRef = useRef<HTMLDivElement | null>(null);
   const frameRef = useRef<number | null>(null);
 
   useEffect(() => {
+    if (!enableMotion) {
+      const target = motionRef.current;
+      if (target) {
+        target.style.setProperty('--cutout-shift', '0px');
+      }
+      return;
+    }
+
     const update = () => {
-      const hero = document.getElementById('hero');
+      const hero = document.getElementById(anchorId);
       const target = motionRef.current;
       if (!hero || !target) return;
 
@@ -47,13 +60,14 @@ export default function CutoutHero() {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
-  }, []);
+  }, [anchorId, enableMotion]);
 
   return (
     <div className="cutout-enter group absolute bottom-0 right-0 z-30 w-[200px] sm:w-[200px] md:w-[500px] lg:w-[500px]">
       <div
         ref={motionRef}
         className="cutout-motion relative h-[200px] w-[200px] sm:h-[200px] sm:w-[200px] md:h-[500px] md:w-[500px] lg:h-[500px] lg:w-[500px]"
+        style={!enableMotion ? { ['--cutout-shift' as string]: '0px' } : undefined}
       >
         <Image
           alt="Cutout detail"

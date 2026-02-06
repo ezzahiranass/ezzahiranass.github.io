@@ -982,7 +982,7 @@ export default function BookViewer({ onPlayActionReady }: { onPlayActionReady: (
               aria-label="Download PDF"
               className="rounded-full border border-white/30 p-3 text-black shadow-lg backdrop-blur-md opacity-70 transition-opacity hover:opacity-100 dark:border-white/20 dark:text-white"
               download
-              href={publicPath('/Portfolio_EzzahirAnass_2024.pdf')}
+              href={publicPath('/Portfolio_EzzahirAnass_2026.pdf')}
               title="Download PDF"
             >
               <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">

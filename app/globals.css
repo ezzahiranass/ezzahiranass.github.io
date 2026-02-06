@@ -36,6 +36,11 @@ body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
+.title-font {
+  font-family: inherit;
+  letter-spacing: normal;
+}
+
 .cutout-enter {
   animation: cutout-enter 600ms ease-out 120ms both;
 }

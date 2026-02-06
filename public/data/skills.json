@@ -19,7 +19,7 @@
       "Efficient topology and scene organization",
       "Rapid ideation with reusable assets"
     ],
-    "image": null
+    "image": "/images/diagram1.png"
   },
   {
     "id": "rendering",
@@ -30,7 +30,7 @@
       "Atmosphere, depth, and mood control",
       "Shot framing for spatial clarity"
     ],
-    "image": null
+    "image": "/images/diagram2.png"
   },
   {
     "id": "parametric-design",
@@ -41,7 +41,7 @@
       "Blender Geometry Nodes setups",
       "Patterning, optimization, and iteration"
     ],
-    "image": null
+    "image": "/images/diagram3.png"
   },
   {
     "id": "software-development",
@@ -52,7 +52,7 @@
       "Data-driven workflows and automation",
       "Version control with Git"
     ],
-    "image": null
+    "image": "/images/diagram4.png"
   },
   {
     "id": "webgl",
@@ -63,6 +63,6 @@
       "React + TypeScript front-end tooling",
       "Performance-focused asset delivery"
     ],
-    "image": null
+    "image": "/images/diagram5.png"
   }
 ]
