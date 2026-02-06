@@ -5,6 +5,7 @@ import { OrbitControls } from '@react-three/drei';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import GUI from 'lil-gui';
+import CanvasKickstart from '@/app/components/three/CanvasKickstart';
 
 type ConfigState = {
   width: number;
@@ -133,6 +134,7 @@ export default function ConfiguratorViewer() {
     <div className="relative h-64 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-strong)]">
       <div ref={guiRef} className="absolute right-3 top-3 z-10" />
       <Canvas shadows camera={{ position: [1, 1, 1], fov: 50 }}>
+        <CanvasKickstart />
         <color attach="background" args={['#f2f2f2']} />
         <ambientLight intensity={0.6} />
         <directionalLight
@@ -155,7 +157,17 @@ export default function ConfiguratorViewer() {
           <boxGeometry args={[config.width, config.height, config.depth]} />
           <meshStandardMaterial color={config.accent} wireframe={config.wireframe} />
         </mesh>
-        <OrbitControls makeDefault enablePan enableZoom enableRotate />
+        <OrbitControls
+          makeDefault
+          enablePan
+          enableZoom
+          enableRotate
+          mouseButtons={{
+            LEFT: THREE.MOUSE.PAN,
+            MIDDLE: THREE.MOUSE.ROTATE,
+            RIGHT: -1 as unknown as THREE.MOUSE,
+          }}
+        />
       </Canvas>
     </div>
   );

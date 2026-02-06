@@ -4,6 +4,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useTheme } from '../theme/ThemeProvider';
+import CanvasKickstart from '@/app/components/three/CanvasKickstart';
 
 type ParticleFieldProps = {
   count?: number;
@@ -154,6 +155,7 @@ export default function ThreeBackground() {
   return (
     <div className="absolute inset-0">
       <Canvas camera={{ position: [0, 0, 12], fov: 55 }} dpr={[1, 2]}>
+        <CanvasKickstart />
         <color attach="background" args={[colors.background]} />
         <ParticleField color={colors.points} />
       </Canvas>

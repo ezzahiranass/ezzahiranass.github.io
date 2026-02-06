@@ -1,13 +1,16 @@
 'use client';
 
 import { useRef, useEffect, Suspense, useState, useCallback } from 'react';
-import { Canvas, useThree, useFrame } from '@react-three/fiber';
-import { Grid, OrbitControls, useFBX } from '@react-three/drei';
+import { Canvas, useThree, useFrame, useLoader } from '@react-three/fiber';
+import { Grid, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
+import { FBXLoader } from 'three-stdlib';
 import { assetPath } from '@/app/lib/assetPath';
+import CanvasKickstart from '@/app/components/three/CanvasKickstart';
 
 type BookState = 'open' | 'closed-left' | 'closed-right' | null;
 const publicPath = assetPath;
+const KNOWN_TOTAL_PAGES = 62;
 
 function BookModel({ 
   onActionsReady,
@@ -20,7 +23,13 @@ function BookModel({
   onPageMaterialsReady: (materials: { leftPage: THREE.Material | null; rightPage: THREE.Material | null }) => void;
   onBookStateChange: (state: BookState) => void;
 }) {
-  const fbx = useFBX(publicPath('/assets/Book.fbx'));
+  const fbx = useLoader(
+    FBXLoader,
+    publicPath('/assets/Book.fbx'),
+    (loader) => {
+      loader.setResourcePath(publicPath('/assets/Book.fbm/'));
+    }
+  );
   const mixerRef = useRef<THREE.AnimationMixer | null>(null);
   const actionsRef = useRef<Map<string, THREE.AnimationAction>>(new Map());
   const currentActionRef = useRef<THREE.AnimationAction | null>(null);
@@ -68,8 +77,6 @@ function BookModel({
           materialName: 'CoverMaterial',
           texturePath: publicPath('/pdf-pages/Cover.png'),
           fallbackPaths: [
-            publicPath('/pdf-pages/cover.png'),
-            publicPath('/pages/cover.png'),
             publicPath('/pages/Cover.png')
           ]
         },
@@ -737,9 +744,14 @@ export default function BookViewer({ onPlayActionReady }: { onPlayActionReady: (
     }
   };
   
-  const handlePageMaterialsReady = (materials: { leftPage: THREE.Material | null; rightPage: THREE.Material | null }) => {
+      const handlePageMaterialsReady = (materials: { leftPage: THREE.Material | null; rightPage: THREE.Material | null }) => {
     if (materials.leftPage && materials.rightPage) {
       setPageMaterialsReady(true);
+      if (KNOWN_TOTAL_PAGES > 0) {
+        setTotalPages(KNOWN_TOTAL_PAGES);
+        setMaxPageIndex(Math.max(Math.ceil(KNOWN_TOTAL_PAGES / 2) - 1, 0));
+        return;
+      }
       // Discover how many pages exist (assumes sequential numbering).
       const checkMaxPages = async () => {
         const pageExists = async (pageNum: number): Promise<boolean> => {
@@ -878,6 +890,7 @@ export default function BookViewer({ onPlayActionReady }: { onPlayActionReady: (
     >
       <Canvas>
         <Suspense fallback={null}>
+          <CanvasKickstart />
           <CameraController resetKey={resetKey} />
           <fog attach="fog" args={['#d8d8d8', 60, 220]} />
           {/* Reduced ambient light for less brightness */}
