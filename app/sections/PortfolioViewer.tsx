@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { FBXLoader } from "three-stdlib";
 import { assetPath } from "../lib/assetPath";
@@ -137,6 +137,21 @@ function LimitedOrbitControls({
   );
 }
 
+function SceneBootstrap() {
+  const { invalidate } = useThree();
+
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => {
+      invalidate();
+    });
+    return () => {
+      cancelAnimationFrame(raf);
+    };
+  }, [invalidate]);
+
+  return null;
+}
+
 function BookModel({ currentPageIndex, onActionsReady }: BookModelProps) {
   const fbx = useLoader(FBXLoader, assetPath("/assets/Book.fbx"), (loader) => {
     loader.setResourcePath(assetPath("/assets/Book.fbm/"));
@@ -159,6 +174,17 @@ function BookModel({ currentPageIndex, onActionsReady }: BookModelProps) {
     leftIndex: -1,
     rightIndex: -1,
   });
+
+  useEffect(() => {
+    console.log("[PortfolioViewer:BookModel] mounted");
+    return () => {
+      console.log("[PortfolioViewer:BookModel] unmounted");
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log("[PortfolioViewer:BookModel] fbx loaded", !!fbx);
+  }, [fbx]);
 
   const textures = useMemo(() => {
     const loader = new THREE.TextureLoader();
@@ -259,6 +285,7 @@ function BookModel({ currentPageIndex, onActionsReady }: BookModelProps) {
   useEffect(() => {
     if (!fbx || initializedRef.current) return;
     initializedRef.current = true;
+    console.log("[PortfolioViewer:BookModel] init start");
 
     const box = new THREE.Box3().setFromObject(fbx);
     const center = box.getCenter(new THREE.Vector3());
@@ -348,7 +375,44 @@ export default function PortfolioViewer() {
   const [isCameraDefault, setIsCameraDefault] = useState(true);
   const [showOverlay, setShowOverlay] = useState(true);
   const [resetKey, setResetKey] = useState(0);
+  const [isCanvasEnabled, setIsCanvasEnabled] = useState(false);
   const viewerRef = useRef<HTMLDivElement | null>(null);
+  const canvasWrapRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    let rafA = 0;
+    let rafB = 0;
+
+    const enableCanvas = () => {
+      rafA = requestAnimationFrame(() => {
+        rafB = requestAnimationFrame(() => {
+          setIsCanvasEnabled(true);
+        });
+      });
+    };
+
+    if (document.visibilityState === "visible") {
+      enableCanvas();
+    }
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        enableCanvas();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      cancelAnimationFrame(rafA);
+      cancelAnimationFrame(rafB);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isCanvasEnabled) return;
+    console.log("[PortfolioViewer] canvas enabled");
+  }, [isCanvasEnabled]);
 
   const handleActionsReady = (playAction: (actionName: string) => void) => {
     playActionRef.current = playAction;
@@ -435,27 +499,45 @@ export default function PortfolioViewer() {
         </div>
         <div className="viewer">
           <div className="viewer-screen has-viewer viewer-screen--full" ref={viewerRef}>
-            <div className="viewer-canvas">
-              <Canvas camera={{ position: [0, 50, 0], fov: 25 }} dpr={[1, 2]}>
-                <color attach="background" args={["#0b1022"]} />
-                <CameraController resetKey={resetKey} />
-                <ambientLight intensity={0.7} />
-                <hemisphereLight
-                  intensity={0.6}
-                  color={0xffffff}
-                  groundColor={0x1b2b55}
-                />
-                <directionalLight position={[10, 12, 6]} intensity={0.9} />
-                <directionalLight position={[-10, 6, -6]} intensity={0.5} />
-                <BookModel
-                  currentPageIndex={currentPageIndex}
-                  onActionsReady={handleActionsReady}
-                />
-                <LimitedOrbitControls
-                  resetKey={resetKey}
-                  onDefaultChange={setIsCameraDefault}
-                />
-              </Canvas>
+            <div className="viewer-canvas" ref={canvasWrapRef}>
+              {isCanvasEnabled ? (
+                <Canvas
+                  camera={{ position: [0, 50, 0], fov: 25 }}
+                  dpr={[1, 2]}
+                  frameloop="always"
+                  resize={{ scroll: true, debounce: { scroll: 0, resize: 0 } }}
+                  onCreated={(state) => {
+                    console.log("[PortfolioViewer:Canvas] created", {
+                      size: state.size,
+                      viewport: state.viewport,
+                      dpr: state.gl.getPixelRatio(),
+                      canvas: state.gl.domElement,
+                    });
+                  }}
+                >
+                  <Suspense fallback={null}>
+                    <SceneBootstrap />
+                    <color attach="background" args={["#0b1022"]} />
+                    <CameraController resetKey={resetKey} />
+                    <ambientLight intensity={0.7} />
+                    <hemisphereLight
+                      intensity={0.6}
+                      color={0xffffff}
+                      groundColor={0x1b2b55}
+                    />
+                    <directionalLight position={[10, 12, 6]} intensity={0.9} />
+                    <directionalLight position={[-10, 6, -6]} intensity={0.5} />
+                    <BookModel
+                      currentPageIndex={currentPageIndex}
+                      onActionsReady={handleActionsReady}
+                    />
+                    <LimitedOrbitControls
+                      resetKey={resetKey}
+                      onDefaultChange={setIsCameraDefault}
+                    />
+                  </Suspense>
+                </Canvas>
+              ) : null}
             </div>
             {showOverlay ? (
               <div className="viewer-overlay">

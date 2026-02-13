@@ -11,28 +11,7 @@ type Skill = {
   image: string | null;
 };
 
-const skillGroups = [
-  {
-    title: "Architectural Systems",
-    description: "Spatial logic, tectonics, and presentation fidelity.",
-    tags: ["Urban Studies", "Material Strategy", "Drawing Sets", "3D Coordination"],
-  },
-  {
-    title: "Computational Design",
-    description: "Rule-based geometry and generative workflows.",
-    tags: ["Grasshopper", "Geometry Nodes", "Parametric Studies", "Optimization"],
-  },
-  {
-    title: "Design Technology",
-    description: "Custom tools that compress production timelines.",
-    tags: ["Automation", "BIM Pipelines", "Data Systems", "Scripting"],
-  },
-  {
-    title: "Visualization",
-    description: "Cinematic narratives for architecture and product.",
-    tags: ["Rendering", "Post FX", "Real-time", "Presentation"],
-  },
-];
+
 
 export default function Skills() {
   const skills = skillsData as Skill[];
@@ -118,21 +97,7 @@ export default function Skills() {
             </div>
           ))}
         </div>
-        <div className="grid">
-          {skillGroups.map((group) => (
-            <div key={group.title} className="card">
-              <h3>{group.title}</h3>
-              <p>{group.description}</p>
-              <div className="pill-row">
-                {group.tags.map((tag) => (
-                  <span key={tag} className="pill mono">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        
       </div>
     </section>
   );
