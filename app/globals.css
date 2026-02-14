@@ -1284,6 +1284,66 @@ main {
   z-index: 10;
   max-height: calc(100% - 24px);
   overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.configurator-shell__gui::-webkit-scrollbar {
+  display: none;
+}
+
+.configurator-shell__view-presets {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  z-index: 11;
+  display: flex;
+  gap: 8px;
+}
+
+.configurator-shell__view-button,
+.configurator-shell__projection-toggle {
+  border-radius: 999px;
+  border: 1px solid rgba(231, 234, 246, 0.35);
+  background: rgba(10, 12, 22, 0.62);
+  color: rgba(231, 234, 246, 0.92);
+  display: grid;
+  place-items: center;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.configurator-shell__view-button {
+  width: 34px;
+  height: 34px;
+}
+
+.configurator-shell__projection-toggle {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 11;
+  min-width: 62px;
+  height: 34px;
+  padding: 0 12px;
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.configurator-shell__view-button:hover,
+.configurator-shell__view-button:focus-visible,
+.configurator-shell__projection-toggle:hover,
+.configurator-shell__projection-toggle:focus-visible {
+  border-color: rgba(231, 234, 246, 0.72);
+  background: rgba(16, 18, 30, 0.82);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.configurator-shell__view-button svg {
+  width: 16px;
+  height: 16px;
 }
 
 .configurator-shell canvas {
@@ -1297,6 +1357,12 @@ main {
   --widget-color: rgba(118, 127, 160, 0.28);
   --focus-color: rgba(123, 123, 255, 0.4);
   --text-color: #e7eaf6;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.configurator-shell .lil-gui::-webkit-scrollbar {
+  display: none;
 }
 
 .gallery-scroller {

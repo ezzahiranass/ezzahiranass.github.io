@@ -100,8 +100,8 @@ const subdividePolyline = (
 export function ModelSketchRenderer({ params }: ModelSketchRendererProps) {
   const state = params as Params;
   const theme = useConfiguratorThemePalette();
-  const [mode, setMode] = useState<Mode>('draw');
-  const [isDrawing, setIsDrawing] = useState(true);
+  const [mode, setMode] = useState<Mode>('edit');
+  const [isDrawing, setIsDrawing] = useState(false);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [previewPoint, setPreviewPoint] = useState<THREE.Vector3 | null>(null);
   const [cursorPoint, setCursorPoint] = useState<THREE.Vector3 | null>(null);
@@ -130,11 +130,15 @@ export function ModelSketchRenderer({ params }: ModelSketchRendererProps) {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const { camera, size } = useThree();
   const { scene: dubaiScene } = useGLTF(assetPath('/assets/dubai.glb'));
-  const dubaiClone = useMemo(() => dubaiScene.clone(true), [dubaiScene]);
+  const dubaiClone = useMemo(() => {
+    const clone = dubaiScene.clone(true);
+    clone.name = '__city_rabat_root';
+    return clone;
+  }, [dubaiScene]);
 
   useEffect(() => {
-    const siteColor = new THREE.Color(theme.surfaceDark);
-    const siteWireColor = new THREE.Color(theme.gridMinor);
+    const siteColor = new THREE.Color('#000000');
+    const siteWireColor = new THREE.Color('#ffffff');
 
     dubaiClone.traverse((child) => {
       if (!(child instanceof THREE.Mesh)) return;
@@ -146,17 +150,17 @@ export function ModelSketchRenderer({ params }: ModelSketchRendererProps) {
         const m = mat as THREE.MeshStandardMaterial;
         m.color.copy(siteColor);
         m.transparent = true;
-        m.opacity = 0.5;
-        m.roughness = 0.7;
+        m.opacity = 0;
+        m.roughness = 0.78;
         m.metalness = 0.05;
-        m.depthWrite = true;
+        m.depthWrite = false;
       });
       if (mesh.geometry) {
         const edgesGeom = new THREE.EdgesGeometry(mesh.geometry, 20);
         const edgesMat = new THREE.LineBasicMaterial({
           color: siteWireColor,
           transparent: true,
-          opacity: 0.16,
+          opacity: 0.1,
         });
         const lineSegments = new THREE.LineSegments(edgesGeom, edgesMat);
         lineSegments.name = '__wireframe_overlay';
@@ -182,7 +186,7 @@ export function ModelSketchRenderer({ params }: ModelSketchRendererProps) {
           });
       });
     };
-  }, [dubaiClone, theme.gridMinor, theme.surfaceDark]);
+  }, [dubaiClone]);
 
   const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), []);
   const floorHeight = Math.max(state.floorHeight ?? 0, 0);
@@ -275,8 +279,8 @@ export function ModelSketchRenderer({ params }: ModelSketchRendererProps) {
         points: [],
         isClosed: false,
       }));
-      setIsDrawing(true);
-      setMode('draw');
+      setIsDrawing(false);
+      setMode('edit');
       setPreviewPoint(null);
       setCursorPoint(null);
       setCloseToStart(false);
@@ -715,54 +719,56 @@ export function ModelSketchRenderer({ params }: ModelSketchRendererProps) {
         </mesh>
       ) : null}
 
-      {towerData.sideLineGeometries.map((geometry, index) => (
-        <lineSegments key={`side-${index}`} geometry={geometry}>
-          <lineBasicMaterial color={theme.line} linewidth={1} transparent opacity={0.34} />
-        </lineSegments>
-      ))}
+      <group name="__sketch_tower_root">
+        {towerData.sideLineGeometries.map((geometry, index) => (
+          <lineSegments key={`side-${index}`} geometry={geometry}>
+            <lineBasicMaterial color={theme.line} linewidth={1} transparent opacity={0.34} />
+          </lineSegments>
+        ))}
 
-      {towerData.sideFaceGeometry ? (
-        <mesh geometry={towerData.sideFaceGeometry}>
-          <ThemedSurfaceMaterial
-            tone="surfaceAlt"
-            opacity={0.85}
-            transparent
-            side={THREE.DoubleSide}
-            accentStrength={0.32}
-          />
-        </mesh>
-      ) : null}
+        {towerData.sideFaceGeometry ? (
+          <mesh geometry={towerData.sideFaceGeometry}>
+            <ThemedSurfaceMaterial
+              tone="surfaceAlt"
+              opacity={0.85}
+              transparent
+              side={THREE.DoubleSide}
+              accentStrength={0.32}
+            />
+          </mesh>
+        ) : null}
 
-      {towerData.floorGeometries.map((geometry, index) => (
-        <mesh key={`floor-${index}`} geometry={geometry}>
-          <ThemedSurfaceMaterial tone="surface" opacity={0.92} transparent accentStrength={0.2} />
-        </mesh>
-      ))}
+        {towerData.floorGeometries.map((geometry, index) => (
+          <mesh key={`floor-${index}`} geometry={geometry}>
+            <ThemedSurfaceMaterial tone="surface" opacity={0.92} transparent accentStrength={0.2} />
+          </mesh>
+        ))}
 
-      {towerData.centroid && towerData.floorsCount ? (
-        <>
-          {centralColumnRadius > 0 ? (
-            <mesh position={[towerData.centroid.x, ((towerData.floorsCount - 1) * floorHeight - slabThickness) * 0.5, towerData.centroid.z]}>
-              <cylinderGeometry args={[centralColumnRadius, centralColumnRadius, (towerData.floorsCount - 1) * floorHeight, 32]} />
-              <ThemedSurfaceMaterial tone="accent" opacity={0.9} transparent accentStrength={0.34} />
-            </mesh>
-          ) : null}
-          {columnCount > 0 && columnRadius > 0 && (centralColumnRadius + columnRingOffset) > 0 ? (
-            Array.from({ length: columnCount }, (_, idx) => {
-              const angle = (idx / columnCount) * Math.PI * 2;
-              const ringRadius = centralColumnRadius + columnRingOffset;
-              const x = towerData.centroid.x + Math.cos(angle) * ringRadius;
-              const z = towerData.centroid.z + Math.sin(angle) * ringRadius;
-              return (
-                <mesh key={`column-${idx}`} position={[x, ((towerData.floorsCount - 1) * floorHeight - slabThickness) * 0.5, z]}>
-                  <cylinderGeometry args={[columnRadius, columnRadius, (towerData.floorsCount - 1) * floorHeight, 20]} />
-                  <ThemedSurfaceMaterial tone="surface" opacity={0.9} transparent accentStrength={0.24} />
-                </mesh>
-              );
-            })
-          ) : null}
-        </>
-      ) : null}
+        {towerData.centroid && towerData.floorsCount ? (
+          <>
+            {centralColumnRadius > 0 ? (
+              <mesh position={[towerData.centroid.x, ((towerData.floorsCount - 1) * floorHeight - slabThickness) * 0.5, towerData.centroid.z]}>
+                <cylinderGeometry args={[centralColumnRadius, centralColumnRadius, (towerData.floorsCount - 1) * floorHeight, 32]} />
+                <ThemedSurfaceMaterial tone="accent" opacity={0.9} transparent accentStrength={0.34} />
+              </mesh>
+            ) : null}
+            {columnCount > 0 && columnRadius > 0 && (centralColumnRadius + columnRingOffset) > 0 ? (
+              Array.from({ length: columnCount }, (_, idx) => {
+                const angle = (idx / columnCount) * Math.PI * 2;
+                const ringRadius = centralColumnRadius + columnRingOffset;
+                const x = towerData.centroid.x + Math.cos(angle) * ringRadius;
+                const z = towerData.centroid.z + Math.sin(angle) * ringRadius;
+                return (
+                  <mesh key={`column-${idx}`} position={[x, ((towerData.floorsCount - 1) * floorHeight - slabThickness) * 0.5, z]}>
+                    <cylinderGeometry args={[columnRadius, columnRadius, (towerData.floorsCount - 1) * floorHeight, 20]} />
+                    <ThemedSurfaceMaterial tone="surface" opacity={0.9} transparent accentStrength={0.24} />
+                  </mesh>
+                );
+              })
+            ) : null}
+          </>
+        ) : null}
+      </group>
 
       {tower.points.map((point, index) => (
         (() => {

@@ -65,6 +65,7 @@ type GroundAssetProps = {
   rotateInPlace?: boolean;
   localRotationY?: number;
   localScale?: [number, number, number];
+  showEdges?: boolean;
 };
 
 function GroundAsset({
@@ -76,6 +77,7 @@ function GroundAsset({
   rotateInPlace = false,
   localRotationY = 0,
   localScale,
+  showEdges = true,
 }: GroundAssetProps) {
   const theme = useConfiguratorThemePalette();
   const { scene } = useGLTF(src);
@@ -91,6 +93,10 @@ function GroundAsset({
     box.getCenter(center);
     return center;
   }, [cloned]);
+  const assetName = useMemo(() => {
+    const file = src.split('/').pop() ?? '';
+    return file.replace('.glb', '');
+  }, [src]);
 
   useEffect(() => {
     cloned.traverse((child) => {
@@ -118,7 +124,7 @@ function GroundAsset({
         material.polygonOffsetUnits = 1;
       }
 
-      if (child.geometry) {
+      if (showEdges && child.geometry) {
         const wireGeom = new THREE.EdgesGeometry(child.geometry, 50);
         const wireMat = new THREE.LineBasicMaterial({
           color: wireColor,
@@ -149,13 +155,18 @@ function GroundAsset({
           });
       });
     };
-  }, [cloned, materialColor, wireColor]);
+  }, [cloned, materialColor, showEdges, wireColor]);
 
   if (rotateInPlace) {
     const centerOffset = new THREE.Vector3(-localCenter.x, 0, -localCenter.z);
     const innerScale = localScale ?? [1, 1, 1];
     return (
-      <group position={[0, position[1], 0]} rotation={[0, rotationY, 0]} scale={scale}>
+      <group
+        name={`__asset_${assetName}`}
+        position={[0, position[1], 0]}
+        rotation={[0, rotationY, 0]}
+        scale={scale}
+      >
         <group position={[position[0], 0, position[2]]}>
           <group rotation={[0, localRotationY, 0]} scale={innerScale}>
             <group position={[centerOffset.x, centerOffset.y, centerOffset.z]}>
@@ -168,7 +179,12 @@ function GroundAsset({
   }
 
   return (
-    <group position={[0, position[1], 0]} rotation={[0, rotationY, 0]} scale={scale}>
+    <group
+      name={`__asset_${assetName}`}
+      position={[0, position[1], 0]}
+      rotation={[0, rotationY, 0]}
+      scale={scale}
+    >
       <group position={[position[0], 0, position[2]]} scale={localScale ?? [1, 1, 1]}>
         <primitive object={cloned} />
       </group>
@@ -182,7 +198,6 @@ function HumanModel({
   rotationY,
   scale = 1,
 }: HumanModelProps) {
-  const theme = useConfiguratorThemePalette();
   const { scene } = useGLTF(src);
   const cloned = useMemo(() => scene.clone(true), [scene]);
 
@@ -191,10 +206,8 @@ function HumanModel({
       if (child instanceof THREE.Mesh) {
         child.castShadow = true;
         child.receiveShadow = true;
-        const replacement = new THREE.MeshStandardMaterial({
-          color: theme.text,
-          roughness: 0.7,
-          metalness: 0.0,
+        const replacement = new THREE.MeshBasicMaterial({
+          color: '#ffffff',
         });
         if (Array.isArray(child.material)) {
           child.material.forEach((mat) => mat.dispose());
@@ -204,10 +217,10 @@ function HumanModel({
         child.material = replacement;
       }
     });
-  }, [cloned, theme.text]);
+  }, [cloned]);
 
   return (
-    <group position={[0, position[1], 0]} rotation={[0, rotationY, 0]} scale={scale}>
+    <group name="__asset_human" position={[0, position[1], 0]} rotation={[0, rotationY, 0]} scale={scale}>
       <group position={[position[0], 0, position[2]]}>
         <primitive object={cloned} />
       </group>
@@ -216,16 +229,15 @@ function HumanModel({
 }
 
 export function ModelCRenderer({ params }: { params: ParamValues }) {
-  const theme = useConfiguratorThemePalette();
   const typed = params as Params;
   const { scene } = useGLTF(assetPath('/assets/city_rabat.glb'));
   const defaultMaterialColor = useMemo(
-    () => new THREE.Color(theme.surfaceDark),
-    [theme.surfaceDark]
+    () => new THREE.Color('#777777'),
+    []
   );
   const wireframeColor = useMemo(
-    () => new THREE.Color(theme.gridMinor),
-    [theme.gridMinor]
+    () => new THREE.Color('#ffffff'),
+    []
   );
   const rotationY = (typed.rotationY * Math.PI) / 180;
   const sizeX = 17.5;
@@ -441,11 +453,11 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
       }
 
       if (child.geometry) {
-        const wireGeom = new THREE.EdgesGeometry(child.geometry, 30);
+        const wireGeom = new THREE.EdgesGeometry(child.geometry, 20);
         const wireMat = new THREE.LineBasicMaterial({
           color: wireframeColor,
           transparent: true,
-          opacity: 0.16,
+          opacity: 0.1,
           polygonOffset: true,
           polygonOffsetFactor: 2,
           polygonOffsetUnits: 4,
@@ -482,7 +494,7 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
   return (
     <>
       <primitive object={scene} position={[0, -0.45, 0]} />
-      <group position={[zOffsetX, 0, zOffsetZ]}>
+      <group name="__house_root" position={[zOffsetX, 0, zOffsetZ]}>
       <GroundAsset
         src={assetPath('/assets/door1.glb')}
         position={[frontDoorX, 0, -sizeZ / 2]}
@@ -493,18 +505,21 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
         position={[garageDoorX1, 0, -sizeZ / 2]}
         rotationY={rotationY}
         scale={[1, garageDoorScaleY/2.5, 1]}
+        showEdges={false}
       />
       <GroundAsset
         src={assetPath('/assets/garage_door.glb')}
         position={[garageDoorX2, 0, -sizeZ / 2]}
         rotationY={rotationY}
         scale={[1, garageDoorScaleY/2.5, 1]}
+        showEdges={false}
       />
       <GroundAsset
         src={assetPath('/assets/garage_door.glb')}
         position={[garageDoorX3, 0, -sizeZ / 2]}
         rotationY={rotationY}
         scale={[1, garageDoorScaleY/2.5, 1]}
+        showEdges={false}
       />
       <GroundAsset
         src={assetPath('/assets/awning.glb')}
@@ -513,6 +528,7 @@ export function ModelCRenderer({ params }: { params: ParamValues }) {
         materialTone="black"
         localScale={[1, 1, setbackEffective]}
         rotateInPlace
+        showEdges={false}
       />
       {plantPotPlacements.map((pot) => (
         <GroundAsset
