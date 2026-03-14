@@ -1,5 +1,6 @@
 ﻿import About from "./sections/About";
 import Contact from "./sections/Contact";
+import CmsProjects from "./sections/CmsProjects";
 import Footer from "./sections/Footer";
 import Gallery from "./sections/Gallery";
 import GifShowcase from "./sections/GifShowcase";
@@ -17,6 +18,7 @@ export default function Home() {
       <Hero />
       <Skills />
       <PortfolioViewer />
+      <CmsProjects />
       <Roadmap />
       <GifShowcase />
       <SampleConfigurators />
