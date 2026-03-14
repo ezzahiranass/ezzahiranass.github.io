@@ -652,14 +652,95 @@
         "type": "array"
       },
       {
-        "description": "Use for uploaded videos, external videos, embeds, and QR media.",
+        "description": "Supports batch drag-and-drop upload with per-video metadata.",
         "of": [
           {
-            "type": "videoGalleryItem"
+            "options": {
+              "accept": "video/*"
+            },
+            "fields": [
+              {
+                "name": "title",
+                "type": "string"
+              },
+              {
+                "rows": 3,
+                "name": "caption",
+                "type": "text"
+              },
+              {
+                "of": [
+                  {
+                    "options": {
+                      "filter": "category == $category",
+                      "filterParams": {
+                        "category": "deliverable-type"
+                      }
+                    },
+                    "to": [
+                      {
+                        "type": "taxonomyOption"
+                      }
+                    ],
+                    "type": "reference",
+                    "title": "Reference to taxonomy option"
+                  }
+                ],
+                "name": "deliverableType",
+                "type": "array"
+              }
+            ],
+            "type": "file"
           }
         ],
         "name": "videoGallery",
         "type": "array"
+      },
+      {
+        "description": "Supports batch drag-and-drop upload with per-file metadata.",
+        "of": [
+          {
+            "options": {
+              "accept": "application/pdf"
+            },
+            "fields": [
+              {
+                "name": "title",
+                "type": "string"
+              },
+              {
+                "rows": 3,
+                "name": "caption",
+                "type": "text"
+              },
+              {
+                "of": [
+                  {
+                    "options": {
+                      "filter": "category == $category",
+                      "filterParams": {
+                        "category": "deliverable-type"
+                      }
+                    },
+                    "to": [
+                      {
+                        "type": "taxonomyOption"
+                      }
+                    ],
+                    "type": "reference",
+                    "title": "Reference to taxonomy option"
+                  }
+                ],
+                "name": "deliverableType",
+                "type": "array"
+              }
+            ],
+            "type": "file"
+          }
+        ],
+        "name": "pdfGallery",
+        "type": "array",
+        "title": "PDF Gallery"
       },
       {
         "description": "Gallery items for QR codes, URLs, and hyperlinks.",
@@ -835,242 +916,6 @@
       }
     ],
     "name": "projectLink",
-    "type": "object"
-  },
-  {
-    "fields": [
-      {
-        "name": "title",
-        "type": "string"
-      },
-      {
-        "options": {
-          "list": [
-            {
-              "title": "Uploaded Video",
-              "value": "video"
-            },
-            {
-              "title": "External Video",
-              "value": "externalVideo"
-            },
-            {
-              "title": "Embed / iframe",
-              "value": "embed"
-            },
-            {
-              "title": "QR Code",
-              "value": "qr"
-            }
-          ],
-          "layout": "radio"
-        },
-        "initialValue": "video",
-        "validation": [
-          {
-            "level": "error",
-            "rules": [
-              {
-                "flag": "valid",
-                "constraint": [
-                  "video",
-                  "externalVideo",
-                  "embed",
-                  "qr"
-                ]
-              },
-              {
-                "flag": "presence",
-                "constraint": "required"
-              }
-            ]
-          }
-        ],
-        "name": "mediaType",
-        "type": "string"
-      },
-      {
-        "options": {
-          "accept": "video/*"
-        },
-        "validation": [
-          {
-            "level": "error",
-            "rules": [
-              {
-                "flag": "custom"
-              }
-            ]
-          }
-        ],
-        "hidden": "conditional",
-        "name": "videoFile",
-        "type": "file"
-      },
-      {
-        "validation": [
-          {
-            "level": "error",
-            "rules": [
-              {
-                "flag": "uri",
-                "constraint": {
-                  "options": {
-                    "scheme": [
-                      "/^http$/",
-                      "/^https$/"
-                    ],
-                    "allowRelative": false,
-                    "relativeOnly": false,
-                    "allowCredentials": false
-                  }
-                }
-              },
-              {
-                "flag": "custom"
-              }
-            ]
-          }
-        ],
-        "hidden": "conditional",
-        "name": "externalVideoUrl",
-        "type": "url",
-        "title": "External Video URL"
-      },
-      {
-        "validation": [
-          {
-            "level": "error",
-            "rules": [
-              {
-                "flag": "uri",
-                "constraint": {
-                  "options": {
-                    "scheme": [
-                      "/^http$/",
-                      "/^https$/"
-                    ],
-                    "allowRelative": false,
-                    "relativeOnly": false,
-                    "allowCredentials": false
-                  }
-                }
-              },
-              {
-                "flag": "custom"
-              }
-            ]
-          }
-        ],
-        "description": "Use trusted embeddable sources only.",
-        "hidden": "conditional",
-        "name": "embedUrl",
-        "type": "url",
-        "title": "Embed URL"
-      },
-      {
-        "options": {
-          "list": [
-            {
-              "title": "16:9",
-              "value": "16 / 9"
-            },
-            {
-              "title": "4:3",
-              "value": "4 / 3"
-            },
-            {
-              "title": "1:1",
-              "value": "1 / 1"
-            },
-            {
-              "title": "9:16",
-              "value": "9 / 16"
-            }
-          ]
-        },
-        "initialValue": "16 / 9",
-        "hidden": "conditional",
-        "name": "embedAspectRatio",
-        "type": "string"
-      },
-      {
-        "options": {
-          "hotspot": true
-        },
-        "validation": [
-          {
-            "level": "error",
-            "rules": [
-              {
-                "flag": "custom"
-              }
-            ]
-          }
-        ],
-        "hidden": "conditional",
-        "name": "qrImage",
-        "type": "image",
-        "title": "QR Code Image"
-      },
-      {
-        "validation": [
-          {
-            "level": "error",
-            "rules": [
-              {
-                "flag": "uri",
-                "constraint": {
-                  "options": {
-                    "scheme": [
-                      "/^http$/",
-                      "/^https$/"
-                    ],
-                    "allowRelative": false,
-                    "relativeOnly": false,
-                    "allowCredentials": false
-                  }
-                }
-              },
-              {
-                "flag": "custom"
-              }
-            ]
-          }
-        ],
-        "hidden": "conditional",
-        "name": "qrTargetUrl",
-        "type": "url",
-        "title": "QR Target URL"
-      },
-      {
-        "rows": 3,
-        "name": "caption",
-        "type": "text"
-      },
-      {
-        "of": [
-          {
-            "options": {
-              "filter": "category == $category",
-              "filterParams": {
-                "category": "deliverable-type"
-              }
-            },
-            "to": [
-              {
-                "type": "taxonomyOption"
-              }
-            ],
-            "type": "reference",
-            "title": "Reference to taxonomy option"
-          }
-        ],
-        "name": "deliverableType",
-        "type": "array"
-      }
-    ],
-    "name": "videoGalleryItem",
     "type": "object"
   }
 ]

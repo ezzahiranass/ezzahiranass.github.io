@@ -252,6 +252,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                     })}
                     {legacyGalleryItems.map((item, index) => {
                       const mediaUrl = getProjectMediaUrl(item);
+                      const deliverableTitles =
+                        item.deliverableType?.flatMap((entry) => {
+                          const title = getProjectTaxonomyTitle(entry);
+                          return title ? [title] : [];
+                        }) ?? [];
 
                       if (!mediaUrl) {
                         return null;
@@ -271,11 +276,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                           {item.caption || deliverableTitles.length > 0 ? (
                             <figcaption className="project-gallery__caption">
                               {item.caption ? <p>{item.caption}</p> : null}
-                              {/* {deliverableTitles.length > 0 ? (
-                                // <p className="project-gallery__meta">
-                                //   Deliverables: {deliverableTitles.join(", ")}
-                                // </p>
-                              ) : null} */}
+                              {deliverableTitles.length > 0 ? (
+                                <p className="project-gallery__meta">
+                                  Deliverables: {deliverableTitles.join(", ")}
+                                </p>
+                              ) : null}
                             </figcaption>
                           ) : null}
                         </figure>

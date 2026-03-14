@@ -1,13 +1,13 @@
 ﻿:root {
-  --bg: #0a0b10;
-  --bg-ink: #f0f3ff;
-  --bg-soft: #111320;
+  --bg: #090909;
+  --bg-ink: #f7efe8;
+  --bg-soft: #12100f;
   --line: rgba(255, 255, 255, 0.08);
-  --text: #e7eaf6;
-  --muted: #a6adbf;
-  --accent: #7b7bff;
-  --accent-2: #2ce0b5;
-  --glow: rgba(123, 123, 255, 0.22);
+  --text: #f4eee8;
+  --muted: #b3a69a;
+  --accent: #ff5a36;
+  --accent-2: #ffb347;
+  --glow: rgba(255, 90, 54, 0.22);
   --radius-lg: 28px;
   --radius-md: 18px;
   --radius-sm: 12px;
@@ -41,9 +41,9 @@ body::before {
   inset: 0;
   pointer-events: none;
   background-image:
-    radial-gradient(circle at 15% 20%, rgba(123, 123, 255, 0.18), transparent 48%),
-    radial-gradient(circle at 90% 10%, rgba(44, 224, 181, 0.18), transparent 42%),
-    radial-gradient(circle at 60% 90%, rgba(100, 140, 255, 0.1), transparent 45%);
+    radial-gradient(circle at 15% 20%, rgba(255, 90, 54, 0.18), transparent 48%),
+    radial-gradient(circle at 90% 10%, rgba(255, 179, 71, 0.14), transparent 42%),
+    radial-gradient(circle at 60% 90%, rgba(255, 122, 69, 0.1), transparent 45%);
   opacity: 0.9;
   z-index: -1;
 }
@@ -671,11 +671,11 @@ main {
 }
 
 .hero-cube-viewer__slider:focus-visible::-webkit-slider-thumb {
-  box-shadow: 0 0 0 2px rgba(123, 123, 255, 0.35);
+  box-shadow: 0 0 0 2px rgba(255, 90, 54, 0.35);
 }
 
 .hero-cube-viewer__slider:focus-visible::-moz-range-thumb {
-  box-shadow: 0 0 0 2px rgba(123, 123, 255, 0.35);
+  box-shadow: 0 0 0 2px rgba(255, 90, 54, 0.35);
 }
 
 .hero-cube-viewer__controls:hover .hero-cube-viewer__control-label,
@@ -716,7 +716,7 @@ main {
   gap: 10px;
   padding: 8px 14px;
   border-radius: 999px;
-  background: rgba(123, 123, 255, 0.15);
+  background: rgba(255, 90, 54, 0.15);
   font-size: 0.82rem;
   color: var(--accent);
 }
@@ -1355,7 +1355,7 @@ main {
   --background-color: rgba(8, 10, 20, 0.82);
   --title-background-color: rgba(7, 9, 16, 0.95);
   --widget-color: rgba(118, 127, 160, 0.28);
-  --focus-color: rgba(123, 123, 255, 0.4);
+  --focus-color: rgba(255, 90, 54, 0.4);
   --text-color: #e7eaf6;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -1457,7 +1457,7 @@ main {
   place-items: center;
   background:
     linear-gradient(160deg, rgba(255, 255, 255, 0.08), transparent 48%),
-    linear-gradient(135deg, rgba(123, 123, 255, 0.18), rgba(10, 12, 22, 0.9));
+    linear-gradient(135deg, rgba(255, 90, 54, 0.18), rgba(10, 12, 22, 0.9));
 }
 
 .project-tile__media img {
