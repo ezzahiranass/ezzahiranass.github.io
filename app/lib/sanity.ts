@@ -298,6 +298,50 @@ export async function fetchSanityProjectSlugs(signal?: AbortSignal) {
   return result ?? [];
 }
 
+export type GalleryImage = { url: string; projectTitle: string };
+
+const galleryImagesQuery = `
+  *[_type == "project"] {
+    title,
+    "imageGalleryUrls": imageGallery[].asset->url,
+    "mediaGalleryUrls": mediaGallery[mediaType == "image"].image.asset->url
+  }
+`;
+
+export async function fetchSanityGalleryImages(limit = 30): Promise<GalleryImage[]> {
+  const result = await runSanityQuery<
+    Array<{ title: string; imageGalleryUrls?: (string | null)[]; mediaGalleryUrls?: (string | null)[] }>
+  >(galleryImagesQuery);
+
+  // Build per-project URL buckets
+  const buckets: Array<{ title: string; urls: string[] }> = (result ?? [])
+    .map((row) => ({
+      title: row.title,
+      urls: [
+        ...(row.imageGalleryUrls ?? []),
+        ...(row.mediaGalleryUrls ?? []),
+      ].filter((u): u is string => Boolean(u)),
+    }))
+    .filter((b) => b.urls.length > 0);
+
+  // Round-robin: pick one from each project in turn until limit reached
+  const all: GalleryImage[] = [];
+  let round = 0;
+  while (all.length < limit) {
+    let added = false;
+    for (const bucket of buckets) {
+      if (round < bucket.urls.length) {
+        all.push({ url: bucket.urls[round], projectTitle: bucket.title });
+        added = true;
+        if (all.length >= limit) break;
+      }
+    }
+    if (!added) break; // all buckets exhausted
+    round++;
+  }
+  return all;
+}
+
 export const getProjectCoverUrl = (project: SanityProject) =>
   project.coverMedia?.image?.asset?.url ?? null;
 

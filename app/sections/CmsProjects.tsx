@@ -39,21 +39,21 @@ export default function CmsProjects() {
       <div className="container">
         <div className="section-heading">
           <div>
-            <p className="eyebrow mono">CMS Projects</p>
-            <h2 className="title">A grid of live projects from Sanity.</h2>
+            <p className="eyebrow mono">All Projects</p>
+            <h2 className="title">Design & Computation Project Catalog</h2>
           </div>
           <p className="subtitle">Hover a tile to reveal the essentials.</p>
         </div>
 
         {loading ? (
-          <div className="projects-state">Loading projects from Sanity...</div>
+          <div className="projects-state">Loading projects...</div>
         ) : null}
 
         {!loading && error ? <div className="projects-state">{error}</div> : null}
 
         {!loading && !error && projects.length === 0 ? (
           <div className="projects-state">
-            No project documents are publicly available in Sanity yet.
+            No project documents are publicly available yet.
           </div>
         ) : null}
 

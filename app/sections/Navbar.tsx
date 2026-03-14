@@ -10,7 +10,7 @@ export default function Navbar() {
   return (
     <header className="navbar">
       <div className="container nav-inner">
-        <div className="nav-logo mono">ANASS / ARCH LAB</div>
+        <div className="nav-logo mono">ANASS EZZAHIR</div>
         <nav className="nav-links" aria-label="Primary">
           {links.map((link) => (
             <a key={link.href} href={link.href}>

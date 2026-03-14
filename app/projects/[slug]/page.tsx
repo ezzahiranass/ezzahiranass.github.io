@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import ProjectPdfGalleryShell from "../../components/projects/ProjectPdfGalleryShell";
+import ProjectGallery, { type GalleryItem } from "../../components/projects/ProjectGallery";
+import ProjectHeroTabs from "../../components/projects/ProjectHeroTabs";
 import {
   fetchSanityProjectBySlug,
   fetchSanityProjectSlugs,
@@ -9,10 +10,10 @@ import {
   getProjectCoverUrl,
   getProjectImageGalleryUrl,
   getProjectMediaUrl,
-  getProjectPdfUrl,
   getProjectTaxonomyTitle,
   getProjectVideoUrl,
 } from "../../lib/sanity";
+
 
 type ProjectPageProps = {
   params: Promise<{
@@ -51,8 +52,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     project.imageGallery?.filter((item) => getProjectImageGalleryUrl(item)) ?? [];
   const videoGalleryItems =
     project.videoGallery?.filter((item) => getProjectVideoUrl(item)) ?? [];
-  const pdfGalleryItems =
-    project.pdfGallery?.filter((item) => getProjectPdfUrl(item)) ?? [];
   const roleTitle = getProjectTaxonomyTitle(project.role);
   const stackTitles =
     project.techStack?.flatMap((item) => {
@@ -65,242 +64,73 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       return title ? [title] : [];
     }) ?? [];
 
+  const galleryItems: GalleryItem[] = [
+    ...imageGalleryItems.flatMap((item) => {
+      const url = getProjectImageGalleryUrl(item);
+      return url ? [{ type: "image" as const, url, alt: item.title ?? project.title, caption: item.caption ?? undefined }] : [];
+    }),
+    ...legacyGalleryItems.flatMap((item) => {
+      const url = getProjectMediaUrl(item);
+      return url ? [{ type: "image" as const, url, alt: item.alt ?? item.title ?? project.title, caption: item.caption ?? undefined }] : [];
+    }),
+    ...videoGalleryItems.flatMap((item) => {
+      const url = getProjectVideoUrl(item);
+      return url ? [{ type: "video" as const, url, mimeType: item.asset?.mimeType ?? undefined }] : [];
+    }),
+  ];
+
   return (
     <main className="project-page">
-      <section className="section">
-        <article className="container project-article">
-          <Link href="/#projects" className="project-back mono">
-            ← Back to projects
-          </Link>
 
-          <header className="project-article__header">
-            <p className="eyebrow mono">{projectTypeTitle ?? "Project"}</p>
-            <h1 className="project-article__title">{project.title}</h1>
-            {project.subtitle ? (
-              <p className="project-article__subtitle">{project.subtitle}</p>
-            ) : null}
-            {project.summary ? (
-              <p className="project-article__lede">{project.summary}</p>
-            ) : null}
-          </header>
+      {/* ── Full-bleed hero: cover image as background, all info overlaid ── */}
+      <section className="project-hero">
+        <div className="project-hero__bg">
+          {coverUrl ? (
+            <Image
+              className="project-hero__img"
+              src={coverUrl}
+              alt={`${project.title} cover image`}
+              fill
+              priority
+              sizes="100vw"
+            />
+          ) : null}
+          <div className="project-hero__overlay" />
+        </div>
 
-          <div className="project-article__hero">
-            {coverUrl ? (
-              <div className="project-article__cover">
-                <Image
-                  src={coverUrl}
-                  alt={`${project.title} cover image`}
-                  width={1600}
-                  height={1125}
-                />
-              </div>
-            ) : (
-              <div className="project-article__cover project-post__cover--placeholder">
-                <span className="mono project-post__placeholder">No cover image</span>
-              </div>
-            )}
-          </div>
+        <Link href="/#projects" className="project-back mono justify-start border">
+          ← Back to projects
+        </Link>
 
-          <div className="project-article__layout">
-            <aside className="project-article__sidebar">
-              <div className="project-article__meta-card">
-                {clientTitle ? (
-                  <div className="project-article__meta-row">
-                    <span className="mono project-post__label">Client</span>
-                    <p>{clientTitle}</p>
-                  </div>
-                ) : null}
-                {projectTypeTitle ? (
-                  <div className="project-article__meta-row">
-                    <span className="mono project-post__label">Type</span>
-                    <p>{projectTypeTitle}</p>
-                  </div>
-                ) : null}
-                {projectSubtypeTitles.length > 0 ? (
-                  <div className="project-article__meta-row">
-                    <span className="mono project-post__label">Subtypes</span>
-                    <p>{projectSubtypeTitles.join(", ")}</p>
-                  </div>
-                ) : null}
-                {publishedAt ? (
-                  <div className="project-article__meta-row">
-                    <span className="mono project-post__label">Published</span>
-                    <p>{publishedAt}</p>
-                  </div>
-                ) : null}
-                {roleTitle ? (
-                  <div className="project-article__meta-row">
-                    <span className="mono project-post__label">Role</span>
-                    <p>{roleTitle}</p>
-                  </div>
-                ) : null}
-                {stackTitles.length > 0 ? (
-                  <div className="project-article__meta-row">
-                    <span className="mono project-post__label">Stack</span>
-                    <p>{stackTitles.join(", ")}</p>
-                  </div>
-                ) : null}
-                {skillTitles.length > 0 ? (
-                  <div className="project-article__meta-row">
-                    <span className="mono project-post__label">Skills</span>
-                    <p>{skillTitles.join(", ")}</p>
-                  </div>
-                ) : null}
-              </div>
-
-              {project.links?.length ? (
-                <div className="project-article__links">
-                  {project.links.map((link) => (
-                    <a
-                      key={`${project.title}-${link.url}`}
-                      className="btn"
-                      href={link.url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {link.label}
-                    </a>
-                  ))}
-                </div>
-              ) : null}
-            </aside>
-
-            <div className="project-article__body">
-              {project.description ? (
-                <div className="project-article__section">
-                  <h2>Overview</h2>
-                  <p className="project-article__paragraph">{project.description}</p>
-                </div>
-              ) : null}
-
-              {imageGalleryItems.length > 0 || legacyGalleryItems.length > 0 ? (
-                <div className="project-article__section">
-                  <h2>Gallery</h2>
-                  <div className="project-gallery project-gallery--article">
-                    {imageGalleryItems.map((item, index) => {
-                      const mediaUrl = getProjectImageGalleryUrl(item);
-                      const deliverableTitles =
-                        item.deliverableType?.flatMap((entry) => {
-                          const title = getProjectTaxonomyTitle(entry);
-                          return title ? [title] : [];
-                        }) ?? [];
-
-                      if (!mediaUrl) {
-                        return null;
-                      }
-
-                      return (
-                        <figure
-                          key={`${project.title}-image-gallery-${index}`}
-                          className="project-gallery__item"
-                        >
-                          <Image
-                            src={mediaUrl}
-                            alt={item.title ?? `${project.title} gallery image ${index + 1}`}
-                            width={1400}
-                            height={1000}
-                          />
-                          {item.caption || deliverableTitles.length > 0 ? (
-                            <figcaption className="project-gallery__caption">
-                              {item.caption ? <p>{item.caption}</p> : null}
-                              {deliverableTitles.length > 0 ? (
-                                <p className="project-gallery__meta">
-                                  Deliverables: {deliverableTitles.join(", ")}
-                                </p>
-                              ) : null}
-                            </figcaption>
-                          ) : null}
-                        </figure>
-                      );
-                    })}
-                    {legacyGalleryItems.map((item, index) => {
-                      const mediaUrl = getProjectMediaUrl(item);
-                      const deliverableTitles =
-                        item.deliverableType?.flatMap((entry) => {
-                          const title = getProjectTaxonomyTitle(entry);
-                          return title ? [title] : [];
-                        }) ?? [];
-
-                      if (!mediaUrl) {
-                        return null;
-                      }
-
-                      return (
-                        <figure
-                          key={`${project.title}-gallery-${index}`}
-                          className="project-gallery__item"
-                        >
-                          <Image
-                            src={mediaUrl}
-                            alt={item.alt ?? item.title ?? `${project.title} gallery image ${index + 1}`}
-                            width={1400}
-                            height={1000}
-                          />
-                          {item.caption || deliverableTitles.length > 0 ? (
-                            <figcaption className="project-gallery__caption">
-                              {item.caption ? <p>{item.caption}</p> : null}
-                              {deliverableTitles.length > 0 ? (
-                                <p className="project-gallery__meta">
-                                  Deliverables: {deliverableTitles.join(", ")}
-                                </p>
-                              ) : null}
-                            </figcaption>
-                          ) : null}
-                        </figure>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : null}
-
-              {videoGalleryItems.length > 0 ? (
-                <div className="project-article__section">
-                  <h2>Videos</h2>
-                  <div className="project-gallery project-gallery--article">
-                    {videoGalleryItems.map((item, index) => {
-                      const videoUrl = getProjectVideoUrl(item);
-
-                      if (!videoUrl) {
-                        return null;
-                      }
-
-                      return (
-                        <figure
-                          key={`${project.title}-video-gallery-${index}`}
-                          className="project-gallery__item"
-                        >
-                          <video
-                            className="project-video"
-                            controls
-                            playsInline
-                            preload="metadata"
-                          >
-                            <source
-                              src={videoUrl}
-                              type={item.asset?.mimeType || "video/mp4"}
-                            />
-                          </video>
-                          
-                        </figure>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : null}
-
-              {pdfGalleryItems.length > 0 ? (
-                <div className="project-article__section">
-                  <h2>PDFs</h2>
-                  <ProjectPdfGalleryShell
-                    items={pdfGalleryItems}
-                    projectTitle={project.title}
-                  />
-                </div>
-              ) : null}
-            </div>
-          </div>
-        </article>
+        <div className="project-hero__content">
+          <p className="eyebrow mono project-hero__eyebrow">
+            {projectTypeTitle ?? "Project"}
+          </p>
+          <h1 className="project-hero__title">{project.title}</h1>
+          {project.subtitle ? (
+            <p className="project-hero__subtitle">{project.subtitle}</p>
+          ) : null}
+          {project.summary ? (
+            <p className="project-hero__lede">{project.summary}</p>
+          ) : null}
+          <ProjectHeroTabs
+            clientTitle={clientTitle}
+            roleTitle={roleTitle}
+            publishedAt={publishedAt}
+            projectSubtypeTitles={projectSubtypeTitles}
+            stackTitles={stackTitles}
+            skillTitles={skillTitles}
+            description={project.description}
+            links={project.links ?? undefined}
+          />
+        </div>
       </section>
+
+      {/* ── Pinterest-style masonry gallery with lightbox ── */}
+      {galleryItems.length > 0 ? (
+        <ProjectGallery items={galleryItems} />
+      ) : null}
+
     </main>
   );
 }
