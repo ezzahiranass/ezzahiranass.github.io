@@ -1,8 +1,25 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
-type ProjectMediaParent = {
-  mediaType?: string
+type ExternalLinkParent = {
+  linkType?: string
 }
+
+const deliverableTypeField = defineField({
+  name: 'deliverableType',
+  title: 'Deliverable Type',
+  type: 'array',
+  group: 'metadata',
+  of: [
+    defineArrayMember({
+      type: 'reference',
+      to: [{type: 'taxonomyOption'}],
+      options: {
+        filter: 'category == $category',
+        filterParams: {category: 'deliverable-type'},
+      },
+    }),
+  ],
+})
 
 const projectLinkType = defineType({
   name: 'projectLink',
@@ -52,9 +69,29 @@ const projectLinkType = defineType({
   },
 })
 
-const projectMediaType = defineType({
-  name: 'projectMedia',
-  title: 'Project Media',
+const coverMediaType = defineType({
+  name: 'coverMedia',
+  title: 'Cover Media',
+  type: 'object',
+  fields: [
+    defineField({
+      name: 'image',
+      title: 'Image',
+      type: 'image',
+      options: {hotspot: true, metadata: ['palette', 'lqip', 'blurhash']},
+    }),
+  ],
+  preview: {
+    select: {
+      title: 'image.asset.originalFilename',
+      media: 'image',
+    },
+  },
+})
+
+const externalLinkGalleryItemType = defineType({
+  name: 'externalLinkGalleryItem',
+  title: 'External Link Gallery Item',
   type: 'object',
   groups: [
     {name: 'content', title: 'Content', default: true},
@@ -68,96 +105,34 @@ const projectMediaType = defineType({
       group: 'content',
     }),
     defineField({
-      name: 'mediaType',
-      title: 'Media Type',
+      name: 'linkType',
+      title: 'Link Type',
       type: 'string',
       group: 'content',
       options: {
         list: [
-          {title: 'Image', value: 'image'},
-          {title: 'Uploaded Video', value: 'video'},
-          {title: 'External Video', value: 'externalVideo'},
-          {title: 'Embed / iframe', value: 'embed'},
           {title: 'QR Code', value: 'qr'},
+          {title: 'URL', value: 'url'},
+          {title: 'Hyperlink', value: 'hyperlink'},
         ],
         layout: 'radio',
       },
-      initialValue: 'image',
+      initialValue: 'url',
       validation: (rule) => rule.required(),
     }),
     defineField({
-      name: 'image',
-      title: 'Image',
-      type: 'image',
-      group: 'content',
-      options: {hotspot: true, metadata: ['palette', 'lqip', 'blurhash']},
-      hidden: ({parent}) => parent?.mediaType !== 'image',
-    }),
-    defineField({
-      name: 'videoFile',
-      title: 'Video File',
-      type: 'file',
-      group: 'content',
-      options: {accept: 'video/*'},
-      hidden: ({parent}) => parent?.mediaType !== 'video',
-      validation: (rule) =>
-        rule.custom((value, context) => {
-          if ((context.parent as ProjectMediaParent | undefined)?.mediaType === 'video' && !value) {
-            return 'A video file is required when media type is Uploaded Video.'
-          }
-
-          return true
-        }),
-    }),
-    defineField({
-      name: 'externalVideoUrl',
-      title: 'External Video URL',
+      name: 'url',
+      title: 'URL',
       type: 'url',
       group: 'content',
-      hidden: ({parent}) => parent?.mediaType !== 'externalVideo',
       validation: (rule) =>
         rule.custom((value, context) => {
-          if (
-            (context.parent as ProjectMediaParent | undefined)?.mediaType === 'externalVideo' &&
-            !value
-          ) {
-            return 'A URL is required when media type is External Video.'
+          if ((context.parent as ExternalLinkParent | undefined)?.linkType !== 'qr' && !value) {
+            return 'A URL is required for URL and Hyperlink items.'
           }
 
           return true
         }),
-    }),
-    defineField({
-      name: 'embedUrl',
-      title: 'Embed URL',
-      description: 'Use trusted embeddable sources only.',
-      type: 'url',
-      group: 'content',
-      hidden: ({parent}) => parent?.mediaType !== 'embed',
-      validation: (rule) =>
-        rule.custom((value, context) => {
-          if ((context.parent as ProjectMediaParent | undefined)?.mediaType === 'embed' && !value) {
-            return 'An embed URL is required when media type is Embed / iframe.'
-          }
-
-          return true
-        }),
-    }),
-    defineField({
-      name: 'embedAspectRatio',
-      title: 'Embed Aspect Ratio',
-      type: 'string',
-      group: 'content',
-      options: {
-        list: [
-          {title: '16:9', value: '16 / 9'},
-          {title: '4:3', value: '4 / 3'},
-          {title: '1:1', value: '1 / 1'},
-          {title: '9:16', value: '9 / 16'},
-        ],
-      },
-      initialValue: '16 / 9',
-      hidden: ({parent}) => parent?.mediaType !== 'embed',
     }),
     defineField({
       name: 'qrImage',
@@ -165,78 +140,55 @@ const projectMediaType = defineType({
       type: 'image',
       group: 'content',
       options: {hotspot: true},
-      hidden: ({parent}) => parent?.mediaType !== 'qr',
+      hidden: ({parent}) => parent?.linkType !== 'qr',
       validation: (rule) =>
         rule.custom((value, context) => {
-          if ((context.parent as ProjectMediaParent | undefined)?.mediaType === 'qr' && !value) {
-            return 'A QR code image is required when media type is QR Code.'
+          if ((context.parent as ExternalLinkParent | undefined)?.linkType === 'qr' && !value) {
+            return 'A QR code image is required when link type is QR Code.'
           }
 
           return true
         }),
     }),
     defineField({
-      name: 'qrTargetUrl',
-      title: 'QR Target URL',
-      type: 'url',
-      group: 'content',
-      hidden: ({parent}) => parent?.mediaType !== 'qr',
-      validation: (rule) =>
-        rule.custom((value, context) => {
-          if ((context.parent as ProjectMediaParent | undefined)?.mediaType === 'qr' && !value) {
-            return 'Add the URL that the QR code points to.'
-          }
-
-          return true
-        }),
+      name: 'showThumbnail',
+      title: 'Show Thumbnail',
+      type: 'boolean',
+      group: 'metadata',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'thumbnail',
+      title: 'Thumbnail',
+      type: 'image',
+      group: 'metadata',
+      options: {hotspot: true},
+      hidden: ({parent}) => !parent?.showThumbnail,
     }),
     defineField({
       name: 'caption',
       title: 'Caption',
       type: 'text',
       rows: 3,
-      group: 'content',
-    }),
-    defineField({
-      name: 'alt',
-      title: 'Alt Text',
-      description: 'Used for accessibility when this media is rendered as an image or thumbnail.',
-      type: 'string',
-      group: 'metadata',
-      validation: (rule) => rule.max(160),
-    }),
-    defineField({
-      name: 'credit',
-      title: 'Credit',
-      type: 'string',
       group: 'metadata',
     }),
     defineField({
-      name: 'copyright',
-      title: 'Copyright / License',
-      type: 'string',
+      ...deliverableTypeField,
       group: 'metadata',
-    }),
-    defineField({
-      name: 'featured',
-      title: 'Featured Media',
-      type: 'boolean',
-      group: 'metadata',
-      initialValue: false,
     }),
   ],
   preview: {
     select: {
       title: 'title',
-      mediaType: 'mediaType',
-      image: 'image',
+      subtitle: 'linkType',
+      thumbnail: 'thumbnail',
       qrImage: 'qrImage',
     },
-    prepare({title, mediaType, image, qrImage}) {
+    prepare({title, subtitle, thumbnail, qrImage}) {
       return {
         title,
-        subtitle: mediaType,
-        media: image || qrImage,
+        subtitle,
+        media: thumbnail || qrImage,
       }
     },
   },
@@ -304,22 +256,6 @@ export const projectType = defineType({
         source: 'title',
         maxLength: 96,
       },
-      validation: (rule) => rule.required(),
-    }),
-    defineField({
-      name: 'status',
-      title: 'Status',
-      type: 'string',
-      group: 'overview',
-      options: {
-        list: [
-          {title: 'Draft', value: 'draft'},
-          {title: 'Published', value: 'published'},
-          {title: 'Archived', value: 'archived'},
-        ],
-        layout: 'radio',
-      },
-      initialValue: 'draft',
       validation: (rule) => rule.required(),
     }),
     defineField({
@@ -418,12 +354,6 @@ export const projectType = defineType({
           options: {hotspot: true},
           fields: [
             defineField({
-              name: 'alt',
-              title: 'Alt Text',
-              type: 'string',
-              validation: (rule) => rule.max(160),
-            }),
-            defineField({
               name: 'caption',
               title: 'Caption',
               type: 'string',
@@ -435,16 +365,107 @@ export const projectType = defineType({
     defineField({
       name: 'coverMedia',
       title: 'Cover Media',
-      description: 'Primary thumbnail or hero asset.',
-      type: 'projectMedia',
+      description: 'Primary thumbnail or hero image.',
+      type: 'coverMedia',
       group: 'media',
     }),
     defineField({
-      name: 'mediaGallery',
-      title: 'Media Gallery',
+      name: 'imageGallery',
+      title: 'Image Gallery',
+      description: 'Supports batch drag-and-drop upload with per-image metadata.',
       type: 'array',
       group: 'media',
-      of: [defineArrayMember({type: 'projectMedia'})],
+      of: [
+        defineArrayMember({
+          type: 'image',
+          options: {hotspot: true, metadata: ['palette', 'lqip', 'blurhash']},
+          fields: [
+            defineField({
+              name: 'title',
+              title: 'Title',
+              type: 'string',
+            }),
+            defineField({
+              name: 'caption',
+              title: 'Caption',
+              type: 'text',
+              rows: 3,
+            }),
+            defineField({
+              ...deliverableTypeField,
+              group: undefined,
+            }),
+          ],
+        }),
+      ],
+    }),
+    defineField({
+      name: 'videoGallery',
+      title: 'Video Gallery',
+      description: 'Supports batch drag-and-drop upload with per-video metadata.',
+      type: 'array',
+      group: 'media',
+      of: [
+        defineArrayMember({
+          type: 'file',
+          options: {accept: 'video/*'},
+          fields: [
+            defineField({
+              name: 'title',
+              title: 'Title',
+              type: 'string',
+            }),
+            defineField({
+              name: 'caption',
+              title: 'Caption',
+              type: 'text',
+              rows: 3,
+            }),
+            defineField({
+              ...deliverableTypeField,
+              group: undefined,
+            }),
+          ],
+        }),
+      ],
+    }),
+    defineField({
+      name: 'pdfGallery',
+      title: 'PDF Gallery',
+      description: 'Supports batch drag-and-drop upload with per-file metadata.',
+      type: 'array',
+      group: 'media',
+      of: [
+        defineArrayMember({
+          type: 'file',
+          options: {accept: 'application/pdf'},
+          fields: [
+            defineField({
+              name: 'title',
+              title: 'Title',
+              type: 'string',
+            }),
+            defineField({
+              name: 'caption',
+              title: 'Caption',
+              type: 'text',
+              rows: 3,
+            }),
+            defineField({
+              ...deliverableTypeField,
+              group: undefined,
+            }),
+          ],
+        }),
+      ],
+    }),
+    defineField({
+      name: 'externalLinkGallery',
+      title: 'External Link Gallery',
+      description: 'Gallery items for QR codes, URLs, and hyperlinks.',
+      type: 'array',
+      group: 'media',
+      of: [defineArrayMember({type: 'externalLinkGalleryItem'})],
     }),
     defineField({
       name: 'links',
@@ -475,13 +496,12 @@ export const projectType = defineType({
       projectSubtitle: 'subtitle',
       summary: 'summary',
       media: 'coverMedia.image',
-      qrMedia: 'coverMedia.qrImage',
     },
-    prepare({title, projectSubtitle, summary, media, qrMedia}) {
+    prepare({title, projectSubtitle, summary, media}) {
       return {
         title,
         subtitle: projectSubtitle || summary,
-        media: media || qrMedia,
+        media,
       }
     },
   },
@@ -499,4 +519,8 @@ export const projectType = defineType({
   ],
 })
 
-export {projectLinkType, projectMediaType}
+export {
+  coverMediaType,
+  externalLinkGalleryItemType,
+  projectLinkType,
+}

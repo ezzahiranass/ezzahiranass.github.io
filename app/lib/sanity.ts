@@ -19,7 +19,6 @@ export type SanityProject = {
   slug?: {
     current?: string;
   };
-  status?: string;
   summary?: string;
   description?: string;
   client?: ProjectTaxonomyOption;
@@ -28,15 +27,7 @@ export type SanityProject = {
   skills?: ProjectTaxonomyOption[];
   publishedAt?: string;
   coverMedia?: {
-    title?: string;
-    alt?: string | null;
-    mediaType?: string;
     image?: {
-      asset?: {
-        url?: string;
-      };
-    };
-    qrImage?: {
       asset?: {
         url?: string;
       };
@@ -47,6 +38,7 @@ export type SanityProject = {
     alt?: string | null;
     caption?: string;
     mediaType?: string;
+    deliverableType?: ProjectTaxonomyOption[];
     image?: {
       asset?: {
         url?: string;
@@ -56,6 +48,33 @@ export type SanityProject = {
       asset?: {
         url?: string;
       };
+    };
+  }>;
+  imageGallery?: Array<{
+    title?: string;
+    caption?: string;
+    deliverableType?: ProjectTaxonomyOption[];
+    asset?: {
+      url?: string;
+    };
+  }>;
+  videoGallery?: Array<{
+    title?: string;
+    caption?: string;
+    deliverableType?: ProjectTaxonomyOption[];
+    asset?: {
+      url?: string;
+      originalFilename?: string;
+      mimeType?: string;
+    };
+  }>;
+  pdfGallery?: Array<{
+    title?: string;
+    caption?: string;
+    deliverableType?: ProjectTaxonomyOption[];
+    asset?: {
+      url?: string;
+      originalFilename?: string;
     };
   }>;
   links?: ProjectLink[] | null;
@@ -93,7 +112,6 @@ const projectFields = `
         }
       },
       slug,
-      status,
       summary,
       description,
       "client": coalesce(
@@ -147,13 +165,7 @@ const projectFields = `
       },
       publishedAt,
       coverMedia{
-        title,
-        alt,
-        mediaType,
         image{
-          asset->{url}
-        },
-        qrImage{
           asset->{url}
         }
       },
@@ -162,11 +174,69 @@ const projectFields = `
         alt,
         caption,
         mediaType,
+        deliverableType[]{
+          _type == "reference" => @->{
+            title,
+            slug
+          },
+          _type != "reference" => {
+            "title": @
+          }
+        },
         image{
           asset->{url}
         },
         qrImage{
           asset->{url}
+        }
+      },
+      imageGallery[]{
+        title,
+        caption,
+        deliverableType[]{
+          _type == "reference" => @->{
+            title,
+            slug
+          },
+          _type != "reference" => {
+            "title": @
+          }
+        },
+        asset->{url}
+      },
+      videoGallery[]{
+        title,
+        caption,
+        deliverableType[]{
+          _type == "reference" => @->{
+            title,
+            slug
+          },
+          _type != "reference" => {
+            "title": @
+          }
+        },
+        asset->{
+          url,
+          originalFilename,
+          mimeType
+        }
+      },
+      pdfGallery[]{
+        title,
+        caption,
+        deliverableType[]{
+          _type == "reference" => @->{
+            title,
+            slug
+          },
+          _type != "reference" => {
+            "title": @
+          }
+        },
+        asset->{
+          url,
+          originalFilename
         }
       },
       links
@@ -229,12 +299,24 @@ export async function fetchSanityProjectSlugs(signal?: AbortSignal) {
 }
 
 export const getProjectCoverUrl = (project: SanityProject) =>
-  project.coverMedia?.image?.asset?.url ?? project.coverMedia?.qrImage?.asset?.url ?? null;
+  project.coverMedia?.image?.asset?.url ?? null;
 
 export const getProjectMediaUrl = (
   media?: NonNullable<SanityProject["mediaGallery"]>[number]
 ) =>
   media?.image?.asset?.url ?? media?.qrImage?.asset?.url ?? null;
+
+export const getProjectImageGalleryUrl = (
+  media?: NonNullable<SanityProject["imageGallery"]>[number]
+) => media?.asset?.url ?? null;
+
+export const getProjectVideoUrl = (
+  media?: NonNullable<SanityProject["videoGallery"]>[number]
+) => media?.asset?.url ?? null;
+
+export const getProjectPdfUrl = (
+  media?: NonNullable<SanityProject["pdfGallery"]>[number]
+) => media?.asset?.url ?? null;
 
 export const formatProjectDate = (value?: string) => {
   if (!value) return null;

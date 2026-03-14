@@ -28,6 +28,7 @@ export const taxonomyOptionType = defineType({
       options: {
         list: [
           {title: 'Client', value: 'client'},
+          {title: 'Deliverable Type', value: 'deliverable-type'},
           {title: 'Project Type', value: 'project-type'},
           {title: 'Project Subtype', value: 'project-subtype'},
           {title: 'Role', value: 'role'},

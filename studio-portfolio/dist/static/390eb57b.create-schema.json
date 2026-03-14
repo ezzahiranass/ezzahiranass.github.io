@@ -1,0 +1,1076 @@
+[
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "max",
+                "constraint": 80
+              }
+            ]
+          }
+        ],
+        "name": "title",
+        "type": "string"
+      },
+      {
+        "options": {
+          "source": "title",
+          "maxLength": 96
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "custom"
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "slug",
+        "type": "slug"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "Client",
+              "value": "client"
+            },
+            {
+              "title": "Deliverable Type",
+              "value": "deliverable-type"
+            },
+            {
+              "title": "Project Type",
+              "value": "project-type"
+            },
+            {
+              "title": "Project Subtype",
+              "value": "project-subtype"
+            },
+            {
+              "title": "Role",
+              "value": "role"
+            },
+            {
+              "title": "Skill",
+              "value": "skill"
+            },
+            {
+              "title": "Tech Stack",
+              "value": "tech-stack"
+            }
+          ],
+          "layout": "radio"
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "valid",
+                "constraint": [
+                  "client",
+                  "deliverable-type",
+                  "project-type",
+                  "project-subtype",
+                  "role",
+                  "skill",
+                  "tech-stack"
+                ]
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "category",
+        "type": "string"
+      }
+    ],
+    "name": "taxonomyOption",
+    "type": "document"
+  },
+  {
+    "fields": [
+      {
+        "options": {
+          "hotspot": true,
+          "metadata": [
+            "palette",
+            "lqip",
+            "blurhash"
+          ]
+        },
+        "name": "image",
+        "type": "image"
+      }
+    ],
+    "name": "coverMedia",
+    "type": "object"
+  },
+  {
+    "fields": [
+      {
+        "name": "title",
+        "type": "string"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "QR Code",
+              "value": "qr"
+            },
+            {
+              "title": "URL",
+              "value": "url"
+            },
+            {
+              "title": "Hyperlink",
+              "value": "hyperlink"
+            }
+          ],
+          "layout": "radio"
+        },
+        "initialValue": "url",
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "valid",
+                "constraint": [
+                  "qr",
+                  "url",
+                  "hyperlink"
+                ]
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "linkType",
+        "type": "string"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "uri",
+                "constraint": {
+                  "options": {
+                    "scheme": [
+                      "/^http$/",
+                      "/^https$/"
+                    ],
+                    "allowRelative": false,
+                    "relativeOnly": false,
+                    "allowCredentials": false
+                  }
+                }
+              },
+              {
+                "flag": "custom"
+              }
+            ]
+          }
+        ],
+        "name": "url",
+        "type": "url",
+        "title": "URL"
+      },
+      {
+        "options": {
+          "hotspot": true
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "custom"
+              }
+            ]
+          }
+        ],
+        "hidden": "conditional",
+        "name": "qrImage",
+        "type": "image",
+        "title": "QR Code Image"
+      },
+      {
+        "initialValue": false,
+        "name": "showThumbnail",
+        "type": "boolean"
+      },
+      {
+        "options": {
+          "hotspot": true
+        },
+        "hidden": "conditional",
+        "name": "thumbnail",
+        "type": "image"
+      },
+      {
+        "rows": 3,
+        "name": "caption",
+        "type": "text"
+      },
+      {
+        "of": [
+          {
+            "options": {
+              "filter": "category == $category",
+              "filterParams": {
+                "category": "deliverable-type"
+              }
+            },
+            "to": [
+              {
+                "type": "taxonomyOption"
+              }
+            ],
+            "type": "reference",
+            "title": "Reference to taxonomy option"
+          }
+        ],
+        "name": "deliverableType",
+        "type": "array"
+      }
+    ],
+    "name": "externalLinkGalleryItem",
+    "type": "object"
+  },
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "max",
+                "constraint": 120
+              }
+            ]
+          }
+        ],
+        "name": "title",
+        "type": "string"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "max",
+                "constraint": 160
+              }
+            ]
+          }
+        ],
+        "name": "subtitle",
+        "type": "string"
+      },
+      {
+        "options": {
+          "filter": "category == $category",
+          "filterParams": {
+            "category": "project-type"
+          }
+        },
+        "to": [
+          {
+            "type": "taxonomyOption"
+          }
+        ],
+        "name": "projectType",
+        "type": "reference",
+        "title": "Type"
+      },
+      {
+        "of": [
+          {
+            "options": {
+              "filter": "category == $category",
+              "filterParams": {
+                "category": "project-subtype"
+              }
+            },
+            "to": [
+              {
+                "type": "taxonomyOption"
+              }
+            ],
+            "type": "reference",
+            "title": "Reference to taxonomy option"
+          }
+        ],
+        "name": "projectSubtypes",
+        "type": "array"
+      },
+      {
+        "options": {
+          "source": "title",
+          "maxLength": 96
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "custom"
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "slug",
+        "type": "slug"
+      },
+      {
+        "initialValue": false,
+        "name": "featured",
+        "type": "boolean",
+        "title": "Featured Project"
+      },
+      {
+        "name": "publishedAt",
+        "type": "datetime"
+      },
+      {
+        "options": {
+          "filter": "category == $category",
+          "filterParams": {
+            "category": "client"
+          }
+        },
+        "to": [
+          {
+            "type": "taxonomyOption"
+          }
+        ],
+        "name": "client",
+        "type": "reference"
+      },
+      {
+        "options": {
+          "filter": "category == $category",
+          "filterParams": {
+            "category": "role"
+          }
+        },
+        "to": [
+          {
+            "type": "taxonomyOption"
+          }
+        ],
+        "name": "role",
+        "type": "reference"
+      },
+      {
+        "of": [
+          {
+            "options": {
+              "filter": "category == $category",
+              "filterParams": {
+                "category": "tech-stack"
+              }
+            },
+            "to": [
+              {
+                "type": "taxonomyOption"
+              }
+            ],
+            "type": "reference",
+            "title": "Reference to taxonomy option"
+          }
+        ],
+        "name": "techStack",
+        "type": "array"
+      },
+      {
+        "of": [
+          {
+            "options": {
+              "filter": "category == $category",
+              "filterParams": {
+                "category": "skill"
+              }
+            },
+            "to": [
+              {
+                "type": "taxonomyOption"
+              }
+            ],
+            "type": "reference",
+            "title": "Reference to taxonomy option"
+          }
+        ],
+        "name": "skills",
+        "type": "array"
+      },
+      {
+        "rows": 3,
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "max",
+                "constraint": 240
+              }
+            ]
+          }
+        ],
+        "description": "Short card/excerpt copy.",
+        "name": "summary",
+        "type": "text"
+      },
+      {
+        "rows": 6,
+        "description": "Longer plain-text overview for quick rendering.",
+        "name": "description",
+        "type": "text"
+      },
+      {
+        "of": [
+          {
+            "lists": [
+              {
+                "value": "bullet",
+                "title": "Bulleted list"
+              },
+              {
+                "value": "number",
+                "title": "Numbered list"
+              }
+            ],
+            "marks": {
+              "annotations": [
+                {
+                  "i18nTitleKey": "inputs.portable-text.annotation.link",
+                  "options": {
+                    "modal": {
+                      "type": "popover"
+                    }
+                  },
+                  "fields": [
+                    {
+                      "validation": [
+                        {
+                          "level": "error",
+                          "rules": [
+                            {
+                              "flag": "uri",
+                              "constraint": {
+                                "options": {
+                                  "scheme": [
+                                    "/^http$/",
+                                    "/^https$/",
+                                    "/^tel$/",
+                                    "/^mailto$/"
+                                  ],
+                                  "allowRelative": true,
+                                  "relativeOnly": false,
+                                  "allowCredentials": false
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "description": "A valid web, email, phone, or relative link.",
+                      "name": "href",
+                      "type": "url",
+                      "title": "Link"
+                    }
+                  ],
+                  "name": "link",
+                  "type": "object"
+                }
+              ],
+              "decorators": [
+                {
+                  "value": "strong",
+                  "title": "Strong"
+                },
+                {
+                  "value": "em",
+                  "title": "Italic"
+                },
+                {
+                  "value": "code",
+                  "title": "Code"
+                },
+                {
+                  "value": "underline",
+                  "title": "Underline"
+                },
+                {
+                  "value": "strike-through",
+                  "title": "Strike"
+                }
+              ]
+            },
+            "of": [],
+            "styles": [
+              {
+                "value": "normal",
+                "title": "Normal"
+              },
+              {
+                "value": "h1",
+                "title": "Heading 1"
+              },
+              {
+                "value": "h2",
+                "title": "Heading 2"
+              },
+              {
+                "value": "h3",
+                "title": "Heading 3"
+              },
+              {
+                "value": "h4",
+                "title": "Heading 4"
+              },
+              {
+                "value": "h5",
+                "title": "Heading 5"
+              },
+              {
+                "value": "h6",
+                "title": "Heading 6"
+              },
+              {
+                "value": "blockquote",
+                "title": "Quote"
+              }
+            ],
+            "type": "block"
+          },
+          {
+            "options": {
+              "hotspot": true
+            },
+            "fields": [
+              {
+                "name": "caption",
+                "type": "string"
+              }
+            ],
+            "type": "image"
+          }
+        ],
+        "name": "content",
+        "type": "array",
+        "title": "Rich Content"
+      },
+      {
+        "description": "Primary thumbnail or hero image.",
+        "name": "coverMedia",
+        "type": "coverMedia"
+      },
+      {
+        "description": "Supports batch drag-and-drop upload with per-image metadata.",
+        "of": [
+          {
+            "options": {
+              "hotspot": true,
+              "metadata": [
+                "palette",
+                "lqip",
+                "blurhash"
+              ]
+            },
+            "fields": [
+              {
+                "name": "title",
+                "type": "string"
+              },
+              {
+                "rows": 3,
+                "name": "caption",
+                "type": "text"
+              },
+              {
+                "of": [
+                  {
+                    "options": {
+                      "filter": "category == $category",
+                      "filterParams": {
+                        "category": "deliverable-type"
+                      }
+                    },
+                    "to": [
+                      {
+                        "type": "taxonomyOption"
+                      }
+                    ],
+                    "type": "reference",
+                    "title": "Reference to taxonomy option"
+                  }
+                ],
+                "name": "deliverableType",
+                "type": "array"
+              }
+            ],
+            "type": "image"
+          }
+        ],
+        "name": "imageGallery",
+        "type": "array"
+      },
+      {
+        "description": "Use for uploaded videos, external videos, embeds, and QR media.",
+        "of": [
+          {
+            "type": "videoGalleryItem"
+          }
+        ],
+        "name": "videoGallery",
+        "type": "array"
+      },
+      {
+        "description": "Gallery items for QR codes, URLs, and hyperlinks.",
+        "of": [
+          {
+            "type": "externalLinkGalleryItem"
+          }
+        ],
+        "name": "externalLinkGallery",
+        "type": "array"
+      },
+      {
+        "of": [
+          {
+            "type": "projectLink"
+          }
+        ],
+        "name": "links",
+        "type": "array",
+        "title": "Project Links"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "max",
+                "constraint": 70
+              }
+            ]
+          }
+        ],
+        "name": "seoTitle",
+        "type": "string",
+        "title": "SEO Title"
+      },
+      {
+        "rows": 4,
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "max",
+                "constraint": 160
+              }
+            ]
+          }
+        ],
+        "name": "seoDescription",
+        "type": "text",
+        "title": "SEO Description"
+      }
+    ],
+    "name": "project",
+    "type": "document"
+  },
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "max",
+                "constraint": 80
+              }
+            ]
+          }
+        ],
+        "name": "label",
+        "type": "string"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "Live Site",
+              "value": "live"
+            },
+            {
+              "title": "Case Study",
+              "value": "case-study"
+            },
+            {
+              "title": "GitHub",
+              "value": "github"
+            },
+            {
+              "title": "App Store",
+              "value": "app-store"
+            },
+            {
+              "title": "Google Play",
+              "value": "google-play"
+            },
+            {
+              "title": "Video",
+              "value": "video"
+            },
+            {
+              "title": "Other",
+              "value": "other"
+            }
+          ],
+          "layout": "radio"
+        },
+        "initialValue": "live",
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "valid",
+                "constraint": [
+                  "live",
+                  "case-study",
+                  "github",
+                  "app-store",
+                  "google-play",
+                  "video",
+                  "other"
+                ]
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "kind",
+        "type": "string",
+        "title": "Link Type"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "uri",
+                "constraint": {
+                  "options": {
+                    "scheme": [
+                      "/^http$/",
+                      "/^https$/",
+                      "/^mailto$/",
+                      "/^tel$/"
+                    ],
+                    "allowRelative": false,
+                    "relativeOnly": false,
+                    "allowCredentials": false
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "name": "url",
+        "type": "url",
+        "title": "URL"
+      }
+    ],
+    "name": "projectLink",
+    "type": "object"
+  },
+  {
+    "fields": [
+      {
+        "name": "title",
+        "type": "string"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "Uploaded Video",
+              "value": "video"
+            },
+            {
+              "title": "External Video",
+              "value": "externalVideo"
+            },
+            {
+              "title": "Embed / iframe",
+              "value": "embed"
+            },
+            {
+              "title": "QR Code",
+              "value": "qr"
+            }
+          ],
+          "layout": "radio"
+        },
+        "initialValue": "video",
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "valid",
+                "constraint": [
+                  "video",
+                  "externalVideo",
+                  "embed",
+                  "qr"
+                ]
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "mediaType",
+        "type": "string"
+      },
+      {
+        "options": {
+          "accept": "video/*"
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "custom"
+              }
+            ]
+          }
+        ],
+        "hidden": "conditional",
+        "name": "videoFile",
+        "type": "file"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "uri",
+                "constraint": {
+                  "options": {
+                    "scheme": [
+                      "/^http$/",
+                      "/^https$/"
+                    ],
+                    "allowRelative": false,
+                    "relativeOnly": false,
+                    "allowCredentials": false
+                  }
+                }
+              },
+              {
+                "flag": "custom"
+              }
+            ]
+          }
+        ],
+        "hidden": "conditional",
+        "name": "externalVideoUrl",
+        "type": "url",
+        "title": "External Video URL"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "uri",
+                "constraint": {
+                  "options": {
+                    "scheme": [
+                      "/^http$/",
+                      "/^https$/"
+                    ],
+                    "allowRelative": false,
+                    "relativeOnly": false,
+                    "allowCredentials": false
+                  }
+                }
+              },
+              {
+                "flag": "custom"
+              }
+            ]
+          }
+        ],
+        "description": "Use trusted embeddable sources only.",
+        "hidden": "conditional",
+        "name": "embedUrl",
+        "type": "url",
+        "title": "Embed URL"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "16:9",
+              "value": "16 / 9"
+            },
+            {
+              "title": "4:3",
+              "value": "4 / 3"
+            },
+            {
+              "title": "1:1",
+              "value": "1 / 1"
+            },
+            {
+              "title": "9:16",
+              "value": "9 / 16"
+            }
+          ]
+        },
+        "initialValue": "16 / 9",
+        "hidden": "conditional",
+        "name": "embedAspectRatio",
+        "type": "string"
+      },
+      {
+        "options": {
+          "hotspot": true
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "custom"
+              }
+            ]
+          }
+        ],
+        "hidden": "conditional",
+        "name": "qrImage",
+        "type": "image",
+        "title": "QR Code Image"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "uri",
+                "constraint": {
+                  "options": {
+                    "scheme": [
+                      "/^http$/",
+                      "/^https$/"
+                    ],
+                    "allowRelative": false,
+                    "relativeOnly": false,
+                    "allowCredentials": false
+                  }
+                }
+              },
+              {
+                "flag": "custom"
+              }
+            ]
+          }
+        ],
+        "hidden": "conditional",
+        "name": "qrTargetUrl",
+        "type": "url",
+        "title": "QR Target URL"
+      },
+      {
+        "rows": 3,
+        "name": "caption",
+        "type": "text"
+      },
+      {
+        "of": [
+          {
+            "options": {
+              "filter": "category == $category",
+              "filterParams": {
+                "category": "deliverable-type"
+              }
+            },
+            "to": [
+              {
+                "type": "taxonomyOption"
+              }
+            ],
+            "type": "reference",
+            "title": "Reference to taxonomy option"
+          }
+        ],
+        "name": "deliverableType",
+        "type": "array"
+      }
+    ],
+    "name": "videoGalleryItem",
+    "type": "object"
+  }
+]

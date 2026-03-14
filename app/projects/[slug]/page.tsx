@@ -1,13 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ProjectPdfGalleryShell from "../../components/projects/ProjectPdfGalleryShell";
 import {
   fetchSanityProjectBySlug,
   fetchSanityProjectSlugs,
   formatProjectDate,
   getProjectCoverUrl,
+  getProjectImageGalleryUrl,
   getProjectMediaUrl,
+  getProjectPdfUrl,
   getProjectTaxonomyTitle,
+  getProjectVideoUrl,
 } from "../../lib/sanity";
 
 type ProjectPageProps = {
@@ -40,9 +44,15 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       const title = getProjectTaxonomyTitle(item);
       return title ? [title] : [];
     }) ?? [];
-  const galleryItems =
+  const legacyGalleryItems =
     project.mediaGallery?.filter((item) => item.mediaType === "image" && getProjectMediaUrl(item)) ??
     [];
+  const imageGalleryItems =
+    project.imageGallery?.filter((item) => getProjectImageGalleryUrl(item)) ?? [];
+  const videoGalleryItems =
+    project.videoGallery?.filter((item) => getProjectVideoUrl(item)) ?? [];
+  const pdfGalleryItems =
+    project.pdfGallery?.filter((item) => getProjectPdfUrl(item)) ?? [];
   const roleTitle = getProjectTaxonomyTitle(project.role);
   const stackTitles =
     project.techStack?.flatMap((item) => {
@@ -81,7 +91,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 </span>
               ))}
               {roleTitle ? <span className="pill">Role: {roleTitle}</span> : null}
-              {project.status ? <span className="pill">Status: {project.status}</span> : null}
               {publishedAt ? <span className="pill">Published: {publishedAt}</span> : null}
             </div>
           </header>
@@ -91,7 +100,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               <div className="project-article__cover">
                 <Image
                   src={coverUrl}
-                  alt={project.coverMedia?.alt ?? `${project.title} cover image`}
+                  alt={`${project.title} cover image`}
                   width={1600}
                   height={1125}
                 />
@@ -201,11 +210,47 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 </div>
               ) : null}
 
-              {galleryItems.length > 0 ? (
+              {imageGalleryItems.length > 0 || legacyGalleryItems.length > 0 ? (
                 <div className="project-article__section">
                   <h2>Gallery</h2>
                   <div className="project-gallery project-gallery--article">
-                    {galleryItems.map((item, index) => {
+                    {imageGalleryItems.map((item, index) => {
+                      const mediaUrl = getProjectImageGalleryUrl(item);
+                      const deliverableTitles =
+                        item.deliverableType?.flatMap((entry) => {
+                          const title = getProjectTaxonomyTitle(entry);
+                          return title ? [title] : [];
+                        }) ?? [];
+
+                      if (!mediaUrl) {
+                        return null;
+                      }
+
+                      return (
+                        <figure
+                          key={`${project.title}-image-gallery-${index}`}
+                          className="project-gallery__item"
+                        >
+                          <Image
+                            src={mediaUrl}
+                            alt={item.title ?? `${project.title} gallery image ${index + 1}`}
+                            width={1400}
+                            height={1000}
+                          />
+                          {item.caption || deliverableTitles.length > 0 ? (
+                            <figcaption className="project-gallery__caption">
+                              {item.caption ? <p>{item.caption}</p> : null}
+                              {deliverableTitles.length > 0 ? (
+                                <p className="project-gallery__meta">
+                                  Deliverables: {deliverableTitles.join(", ")}
+                                </p>
+                              ) : null}
+                            </figcaption>
+                          ) : null}
+                        </figure>
+                      );
+                    })}
+                    {legacyGalleryItems.map((item, index) => {
                       const mediaUrl = getProjectMediaUrl(item);
 
                       if (!mediaUrl) {
@@ -223,15 +268,65 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                             width={1400}
                             height={1000}
                           />
-                          {item.caption ? (
+                          {item.caption || deliverableTitles.length > 0 ? (
                             <figcaption className="project-gallery__caption">
-                              {item.caption}
+                              {item.caption ? <p>{item.caption}</p> : null}
+                              {/* {deliverableTitles.length > 0 ? (
+                                // <p className="project-gallery__meta">
+                                //   Deliverables: {deliverableTitles.join(", ")}
+                                // </p>
+                              ) : null} */}
                             </figcaption>
                           ) : null}
                         </figure>
                       );
                     })}
                   </div>
+                </div>
+              ) : null}
+
+              {videoGalleryItems.length > 0 ? (
+                <div className="project-article__section">
+                  <h2>Videos</h2>
+                  <div className="project-gallery project-gallery--article">
+                    {videoGalleryItems.map((item, index) => {
+                      const videoUrl = getProjectVideoUrl(item);
+
+                      if (!videoUrl) {
+                        return null;
+                      }
+
+                      return (
+                        <figure
+                          key={`${project.title}-video-gallery-${index}`}
+                          className="project-gallery__item"
+                        >
+                          <video
+                            className="project-video"
+                            controls
+                            playsInline
+                            preload="metadata"
+                          >
+                            <source
+                              src={videoUrl}
+                              type={item.asset?.mimeType || "video/mp4"}
+                            />
+                          </video>
+                          
+                        </figure>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+
+              {pdfGalleryItems.length > 0 ? (
+                <div className="project-article__section">
+                  <h2>PDFs</h2>
+                  <ProjectPdfGalleryShell
+                    items={pdfGalleryItems}
+                    projectTitle={project.title}
+                  />
                 </div>
               ) : null}
             </div>

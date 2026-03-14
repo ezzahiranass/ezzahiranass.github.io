@@ -40,11 +40,9 @@ export default function CmsProjects() {
         <div className="section-heading">
           <div>
             <p className="eyebrow mono">CMS Projects</p>
-            <h2 className="title">Latest work, pulled from Sanity.</h2>
+            <h2 className="title">A grid of live projects from Sanity.</h2>
           </div>
-          <p className="subtitle">
-            A live project feed with cover media, metadata, and outbound links.
-          </p>
+          <p className="subtitle">Hover a tile to reveal the essentials.</p>
         </div>
 
         {loading ? (
