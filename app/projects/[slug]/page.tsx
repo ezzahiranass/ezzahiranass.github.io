@@ -70,11 +70,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       <section className="section">
         <article className="container project-article">
           <Link href="/#projects" className="project-back mono">
-            Back to projects
+            ← Back to projects
           </Link>
 
           <header className="project-article__header">
-            <p className="eyebrow mono">Project Post</p>
+            <p className="eyebrow mono">{projectTypeTitle ?? "Project"}</p>
             <h1 className="project-article__title">{project.title}</h1>
             {project.subtitle ? (
               <p className="project-article__subtitle">{project.subtitle}</p>
@@ -82,17 +82,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             {project.summary ? (
               <p className="project-article__lede">{project.summary}</p>
             ) : null}
-            <div className="pill-row">
-              {clientTitle ? <span className="pill">Client: {clientTitle}</span> : null}
-              {projectTypeTitle ? <span className="pill">Type: {projectTypeTitle}</span> : null}
-              {projectSubtypeTitles.map((item) => (
-                <span key={`${project.title}-${item}`} className="pill">
-                  Subtype: {item}
-                </span>
-              ))}
-              {roleTitle ? <span className="pill">Role: {roleTitle}</span> : null}
-              {publishedAt ? <span className="pill">Published: {publishedAt}</span> : null}
-            </div>
           </header>
 
           <div className="project-article__hero">
@@ -181,32 +170,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 <div className="project-article__section">
                   <h2>Overview</h2>
                   <p className="project-article__paragraph">{project.description}</p>
-                </div>
-              ) : null}
-
-              {roleTitle || projectSubtypeTitles.length > 0 || stackTitles.length > 0 || skillTitles.length > 0 ? (
-                <div className="project-article__section">
-                  <h2>Project Notes</h2>
-                  {roleTitle ? (
-                    <p className="project-article__paragraph">
-                      <strong>Role:</strong> {roleTitle}.
-                    </p>
-                  ) : null}
-                  {projectSubtypeTitles.length > 0 ? (
-                    <p className="project-article__paragraph">
-                      <strong>Subtypes:</strong> {projectSubtypeTitles.join(", ")}.
-                    </p>
-                  ) : null}
-                  {stackTitles.length > 0 ? (
-                    <p className="project-article__paragraph">
-                      <strong>Tools and stack:</strong> {stackTitles.join(", ")}.
-                    </p>
-                  ) : null}
-                  {skillTitles.length > 0 ? (
-                    <p className="project-article__paragraph">
-                      <strong>Skills:</strong> {skillTitles.join(", ")}.
-                    </p>
-                  ) : null}
                 </div>
               ) : null}
 
