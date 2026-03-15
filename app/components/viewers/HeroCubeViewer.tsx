@@ -68,7 +68,7 @@ const LAYER_EVENT_HALL_COLOR = "#ffd84d";
 const LAYER_RECEPTION_COLOR = "#ff8a3d";
 const LAYER_COMMERCIAL_COLOR = "#8a62ff";
 const LAYER_SHARED_COLOR = "#4da3ff";
-const OUTLINE_COLOR = "#ffffff";
+const OUTLINE_COLOR_DARK = "#ffffff";
 const OUTLINE_STRENGTH = 1.5;
 const OUTLINE_THICKNESS = 0.2;
 const OUTLINE_GLOW = 0.0;
@@ -469,6 +469,17 @@ function OutlinePostprocessing({
   const composerRef = useRef<EffectComposer | null>(null);
   const outlinePassRef = useRef<OutlinePass | null>(null);
 
+  const applyOutlineColor = () => {
+    if (!outlinePassRef.current) return;
+    const root = document.documentElement;
+    const isLightTheme = root.dataset.theme === "light";
+    const lightOutlineColor =
+      getComputedStyle(root).getPropertyValue("--accent").trim() || OUTLINE_COLOR_DARK;
+    const color = isLightTheme ? lightOutlineColor : OUTLINE_COLOR_DARK;
+    outlinePassRef.current.visibleEdgeColor.set(color);
+    outlinePassRef.current.hiddenEdgeColor.set(color);
+  };
+
   useEffect(() => {
     const composer = new EffectComposer(gl);
     composer.addPass(new RenderPass(scene, camera));
@@ -481,14 +492,22 @@ function OutlinePostprocessing({
     outlinePass.edgeThickness = OUTLINE_THICKNESS;
     outlinePass.edgeGlow = OUTLINE_GLOW;
     outlinePass.pulsePeriod = 0;
-    outlinePass.visibleEdgeColor.set(OUTLINE_COLOR);
-    outlinePass.hiddenEdgeColor.set(OUTLINE_COLOR);
     composer.addPass(outlinePass);
 
     composerRef.current = composer;
     outlinePassRef.current = outlinePass;
+    applyOutlineColor();
+
+    const themeObserver = new MutationObserver(() => {
+      applyOutlineColor();
+    });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
 
     return () => {
+      themeObserver.disconnect();
       composer.dispose();
       composerRef.current = null;
       outlinePassRef.current = null;

@@ -1,9 +1,10 @@
-﻿import ParticleGrid from "../components/ParticleGrid";
+import CutoutHero from "../components/CutoutHero";
+import ParticleGrid from "../components/ParticleGrid";
 import { assetPath } from "../lib/assetPath";
 
 export default function About() {
   return (
-    <section id="about" className="section about-section">
+    <section id="about" className="section section--deep about-section">
       <img
         alt=""
         className="paper-border paper-border--about"
@@ -11,7 +12,8 @@ export default function About() {
       />
       <ParticleGrid className="about-shell">
         <div className="hero-overlay-grid" aria-hidden="true" />
-        
+        <CutoutHero anchorId="about" enableMotion={false} />
+
         <div className="container about-content">
           <div className="section-heading">
             <div>
@@ -26,27 +28,20 @@ export default function About() {
           <div className="about-grid">
             <div className="about-copy">
               <p>
-                I design architectural systems that translate cleanly from
-                concept to construction. My focus is on computational design,
-                parametric workflows, and the tooling that keeps projects
-                precise and scalable.
+                As an architect and self-taught software developer specializing
+                in the intersection of design and technology, I create custom
+                plugins, automations, and digital solutions for 3D software to
+                streamline architectural Visualization and 3D design workflows.
+                Passionate about leveraging cutting-edge technology to enhance
+                conceptualization and elevate the design process. I aim to
+                combine my architectural expertise with programming skills to
+                drive efficiency and push creative boundaries in the field.
               </p>
               <p>
                 The portfolio is organized around built work, research studies,
-                and automation projects that accelerate modeling, visualization,
-                and documentation.
+                and automation projects that accelerate modeling,
+                visualization, and documentation.
               </p>
-            </div>
-            <div className="about-aside">
-              <span className="pill mono">Based in Casablanca</span>
-              <span className="pill mono">Architecture + Tech</span>
-              <span className="pill mono">Remote + Onsite</span>
-              <div>
-                <h3 className="title">Focus Areas</h3>
-                <p className="subtitle">
-                  Parametric systems, facade studies, automation.
-                </p>
-              </div>
             </div>
           </div>
         </div>

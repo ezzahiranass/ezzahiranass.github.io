@@ -2,7 +2,7 @@ import ConfiguratorSection from "../components/configurator/ConfiguratorSection"
 
 export default function SampleConfigurators() {
   return (
-    <section id="configurators" className="section">
+    <section id="configurators" className="section section--alt">
       <div className="container">
         <div className="section-heading">
           <div>

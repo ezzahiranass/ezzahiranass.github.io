@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
@@ -21,13 +21,27 @@ export const metadata: Metadata = {
   description: "A modern, minimalistic portfolio playground.",
 };
 
+const themeInitScript = `
+(() => {
+  const storageKey = "portfolio-theme";
+  const root = document.documentElement;
+  const stored = window.localStorage.getItem(storageKey);
+  const preferredDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const theme = stored === "light" || stored === "dark" ? stored : (preferredDark ? "dark" : "light");
+  root.dataset.theme = theme;
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className={`${spaceGrotesk.variable} ${plexMono.variable}`}>
         {children}
       </body>

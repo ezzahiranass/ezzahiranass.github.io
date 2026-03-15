@@ -23,7 +23,7 @@ export default function Hero() {
                 View Projects
               </button>
               <button className="btn" type="button">
-                See Tooling
+                Contact Me
               </button>
             </div>
           </div>

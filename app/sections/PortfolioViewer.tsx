@@ -373,6 +373,12 @@ export default function PortfolioViewer() {
   const [bookState, setBookState] = useState<BookState>("open");
   const playActionRef = useRef<((actionName: string) => void) | null>(null);
   const [isCameraDefault, setIsCameraDefault] = useState(true);
+  const sceneBackground = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    return getComputedStyle(document.documentElement)
+      .getPropertyValue("--surface-canvas")
+      .trim();
+  }, []);
   const [showOverlay, setShowOverlay] = useState(true);
   const [resetKey, setResetKey] = useState(0);
   const [isCanvasEnabled, setIsCanvasEnabled] = useState(false);
@@ -485,7 +491,7 @@ export default function PortfolioViewer() {
     : 0;
 
   return (
-    <section id="portfolio" className="section section--alt">
+    <section id="portfolio" className="section">
       <div className="container">
         <div className="section-heading">
           <div>
@@ -517,13 +523,15 @@ export default function PortfolioViewer() {
                 >
                   <Suspense fallback={null}>
                     <SceneBootstrap />
-                    <color attach="background" args={["#0b1022"]} />
+                    {sceneBackground ? (
+                      <color attach="background" args={[sceneBackground]} />
+                    ) : null}
                     <CameraController resetKey={resetKey} />
                     <ambientLight intensity={0.7} />
                     <hemisphereLight
                       intensity={0.6}
                       color={0xffffff}
-                      groundColor={0x1b2b55}
+                      groundColor={0x2b3138}
                     />
                     <directionalLight position={[10, 12, 6]} intensity={0.9} />
                     <directionalLight position={[-10, 6, -6]} intensity={0.5} />

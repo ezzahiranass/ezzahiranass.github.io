@@ -1,12 +1,14 @@
-﻿export default function Footer() {
+import SocialLinks from "../components/SocialLinks";
+
+export default function Footer() {
   return (
     <footer className="footer">
-      <div className="container">
-        <p className="mono">ANASS / ARCHITECTURE SYSTEMS</p>
-        <p>
-          Computational architecture portfolio. Placeholder content for UI
-          exploration.
-        </p>
+      <div className="container footer-inner">
+        <div>
+          <p className="mono">ANASS EZZAHIR © 2026</p>
+          <p>Computational architecture portfolio.</p>
+        </div>
+        <SocialLinks iconOnly />
       </div>
     </footer>
   );

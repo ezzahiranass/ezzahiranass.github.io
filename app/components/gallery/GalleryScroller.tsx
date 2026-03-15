@@ -3,9 +3,16 @@
 import { useEffect, useMemo, useRef } from "react";
 import type { GalleryImage } from "../../lib/sanity";
 
-export default function GalleryScroller({ items }: { items: GalleryImage[] }) {
+export default function GalleryScroller({
+  direction = "forward",
+  items,
+}: {
+  direction?: "forward" | "reverse";
+  items: GalleryImage[];
+}) {
   const railRef = useRef<HTMLDivElement | null>(null);
   const isResettingRef = useRef(false);
+  const stepDelta = direction === "reverse" ? -0.5 : 0.5;
 
   const loopedItems = useMemo(() => {
     if (items.length === 0) return [];
@@ -17,7 +24,7 @@ export default function GalleryScroller({ items }: { items: GalleryImage[] }) {
     if (!rail) return;
     const segment = rail.scrollWidth / 3;
     if (segment > 0) rail.scrollLeft = segment;
-  }, []);
+  }, [stepDelta]);
 
   useEffect(() => {
     const rail = railRef.current;
@@ -33,7 +40,7 @@ export default function GalleryScroller({ items }: { items: GalleryImage[] }) {
     rail.addEventListener("mouseleave", handleLeave);
 
     const step = () => {
-      if (!isPaused) rail.scrollLeft += 0.5;
+      if (!isPaused) rail.scrollLeft += stepDelta;
       rafId = window.requestAnimationFrame(step);
     };
     rafId = window.requestAnimationFrame(step);
@@ -43,13 +50,28 @@ export default function GalleryScroller({ items }: { items: GalleryImage[] }) {
       rail.removeEventListener("mouseenter", handleEnter);
       rail.removeEventListener("mouseleave", handleLeave);
     };
-  }, []);
+  }, [stepDelta]);
 
   const handleScroll = () => {
     const rail = railRef.current;
     if (!rail || isResettingRef.current) return;
     const segment = rail.scrollWidth / 3;
     if (segment === 0) return;
+
+    if (direction === "reverse") {
+      if (rail.scrollLeft < segment * 0.55) {
+        isResettingRef.current = true;
+        rail.scrollLeft += segment;
+        isResettingRef.current = false;
+      }
+      if (rail.scrollLeft > segment * 1.45) {
+        isResettingRef.current = true;
+        rail.scrollLeft -= segment;
+        isResettingRef.current = false;
+      }
+      return;
+    }
+
     if (rail.scrollLeft < segment * 0.55) {
       isResettingRef.current = true;
       rail.scrollLeft += segment;
@@ -70,9 +92,6 @@ export default function GalleryScroller({ items }: { items: GalleryImage[] }) {
         <div key={`${item.url}-${index}`} className="gallery-card">
           <div className="gallery-media">
             <img src={item.url} alt={item.projectTitle} loading="lazy" />
-          </div>
-          <div className="gallery-caption">
-            <div className="mono">{item.projectTitle}</div>
           </div>
         </div>
       ))}

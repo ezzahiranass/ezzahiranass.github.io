@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef } from "react";
 
@@ -25,6 +25,7 @@ type ParticleGridProps = {
 function hexToRgb(hex: string): Rgb | null {
   const cleaned = hex.replace("#", "").trim();
   if (!cleaned) return null;
+
   const full =
     cleaned.length === 3
       ? cleaned
@@ -32,7 +33,9 @@ function hexToRgb(hex: string): Rgb | null {
           .map((char) => `${char}${char}`)
           .join("")
       : cleaned;
+
   if (full.length !== 6) return null;
+
   const value = Number.parseInt(full, 16);
   return {
     r: (value >> 16) & 255,
@@ -54,27 +57,32 @@ export default function ParticleGrid({ className, children }: ParticleGridProps)
     const context = canvas.getContext("2d");
     if (!context) return;
 
-    const styles = getComputedStyle(document.documentElement);
-    const accent =
-      hexToRgb(styles.getPropertyValue("--accent")) ?? {
-        r: 123,
-        g: 123,
-        b: 255,
-      };
-    const accentAlt =
-      hexToRgb(styles.getPropertyValue("--accent-2")) ?? {
-        r: 44,
-        g: 224,
-        b: 181,
-      };
-
-    const colors = [accent, accentAlt];
+    let colors: [Rgb, Rgb] = [
+      { r: 11, g: 63, b: 224 },
+      { r: 122, g: 170, b: 255 },
+    ];
     const dpr = Math.min(2, window.devicePixelRatio || 1);
 
     let particles: Particle[] = [];
     let animationFrame = 0;
     let bounds = shell.getBoundingClientRect();
     let radius = 120 * 120;
+
+    const readColors = () => {
+      const styles = getComputedStyle(document.documentElement);
+      const accent = hexToRgb(styles.getPropertyValue("--accent")) ?? {
+        r: 11,
+        g: 63,
+        b: 224,
+      };
+      const accentAlt = hexToRgb(styles.getPropertyValue("--accent-2")) ?? {
+        r: 122,
+        g: 170,
+        b: 255,
+      };
+
+      colors = [accent, accentAlt];
+    };
 
     const buildGrid = () => {
       bounds = shell.getBoundingClientRect();
@@ -171,6 +179,13 @@ export default function ParticleGrid({ className, children }: ParticleGridProps)
     const resizeObserver = new ResizeObserver(buildGrid);
     resizeObserver.observe(shell);
 
+    const themeObserver = new MutationObserver(readColors);
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme", "style", "class"],
+    });
+
+    readColors();
     buildGrid();
     render();
 
@@ -179,6 +194,7 @@ export default function ParticleGrid({ className, children }: ParticleGridProps)
       shell.removeEventListener("pointermove", handlePointerMove);
       shell.removeEventListener("pointerleave", handlePointerLeave);
       resizeObserver.disconnect();
+      themeObserver.disconnect();
     };
   }, []);
 
