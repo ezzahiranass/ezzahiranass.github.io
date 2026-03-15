@@ -31,24 +31,15 @@ export default function GalleryScroller({
     if (!rail) return;
 
     let rafId = 0;
-    let isPaused = false;
-
-    const handleEnter = () => { isPaused = true; };
-    const handleLeave = () => { isPaused = false; };
-
-    rail.addEventListener("mouseenter", handleEnter);
-    rail.addEventListener("mouseleave", handleLeave);
 
     const step = () => {
-      if (!isPaused) rail.scrollLeft += stepDelta;
+      rail.scrollLeft += stepDelta;
       rafId = window.requestAnimationFrame(step);
     };
     rafId = window.requestAnimationFrame(step);
 
     return () => {
       window.cancelAnimationFrame(rafId);
-      rail.removeEventListener("mouseenter", handleEnter);
-      rail.removeEventListener("mouseleave", handleLeave);
     };
   }, [stepDelta]);
 

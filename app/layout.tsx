@@ -17,8 +17,8 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Portfolio | Monochrome Lab",
-  description: "A modern, minimalistic portfolio playground.",
+  title: "Anass Ezzahir | Portfolio",
+  description: "Design Technology in Architecture.",
 };
 
 const themeInitScript = `
