@@ -19,12 +19,12 @@ export default function Hero() {
               Computational Architecture, Crafted for Real World Impact.
             </p>
             <div className="hero-actions">
-              <button className="btn btn--primary" type="button">
+              <a className="btn btn--primary" href="#projects">
                 View Projects
-              </button>
-              <button className="btn" type="button">
+              </a>
+              <a className="btn" href="mailto:anassezzahir@gmail.com">
                 Contact Me
-              </button>
+              </a>
             </div>
           </div>
         </div>

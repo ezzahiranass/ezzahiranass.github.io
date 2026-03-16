@@ -561,7 +561,9 @@ export default function ConfiguratorShell({ model }: ConfiguratorShellProps) {
   const [params, setParams] = useState<ParamValues>(() => ({ ...model.defaults }));
   const [isCanvasEnabled, setIsCanvasEnabled] = useState(false);
   const [isSketchDrawing, setIsSketchDrawing] = useState(false);
-  const [orthographicEnabled, setOrthographicEnabled] = useState(true);
+  const [orthographicEnabled, setOrthographicEnabled] = useState(
+    () => model.id !== 'model-c'
+  );
   const [viewPreset, setViewPreset] = useState<{ type: ViewPreset; nonce: number } | null>(null);
   const viewRotationYDeg = typeof params.rotationY === 'number' ? params.rotationY : 0;
   const cameraPosition = model.camera?.position ?? ([1, 1, 1] as [number, number, number]);

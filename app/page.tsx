@@ -7,7 +7,7 @@ import Navbar from "./sections/Navbar";
 import PortfolioViewer from "./sections/PortfolioViewer";
 import Roadmap from "./sections/Roadmap";
 import SampleConfigurators from "./sections/SampleConfigurators";
-import Skills from "./sections/Skills";
+import SkillsGraph from "./sections/SkillsGraph";
 
 export default function Home() {
   return (
@@ -19,7 +19,7 @@ export default function Home() {
       <CmsProjects />
       <Roadmap />
       <SampleConfigurators />
-      <Skills />
+      <SkillsGraph />
       <About />
       <Footer />
     </main>

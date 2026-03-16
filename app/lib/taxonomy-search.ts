@@ -11,8 +11,10 @@ export type SearchCategory =
   | "Skill"
   | "Project Type"
   | "Project Subtype"
+  | "Deliverable Type"
   | "Tech Stack"
-  | "Role";
+  | "Role"
+  | "Client";
 
 export type SearchProjectRef = {
   key: string;
@@ -35,8 +37,10 @@ export const searchCategoryOrder: SearchCategory[] = [
   "Skill",
   "Project Type",
   "Project Subtype",
+  "Deliverable Type",
   "Tech Stack",
   "Role",
+  "Client",
 ];
 
 export function createSearchHref(category: SearchCategory, value: string) {
@@ -101,7 +105,20 @@ export function collectTaxonomyResults(projects: SanityProject[]) {
     });
   };
 
+  const pushMediaEntries = (
+    category: "Skill" | "Deliverable Type" | "Tech Stack",
+    values: SanityProject["imageGallery"] extends Array<infer T>
+      ? T["skills"] | T["deliverableType"] | T["techStack"]
+      : never,
+    project: SanityProject
+  ) => {
+    values?.forEach((item) => {
+      pushEntry(category, getProjectTaxonomyTitle(item), project);
+    });
+  };
+
   projects.forEach((project) => {
+    pushEntry("Client", getProjectTaxonomyTitle(project.client), project);
     pushEntry("Role", getProjectTaxonomyTitle(project.role), project);
     pushEntry(
       "Project Type",
@@ -113,12 +130,34 @@ export function collectTaxonomyResults(projects: SanityProject[]) {
       pushEntry("Project Subtype", getProjectTaxonomyTitle(item), project);
     });
 
-    project.techStack?.forEach((item) => {
-      pushEntry("Tech Stack", getProjectTaxonomyTitle(item), project);
+    project.imageGallery?.forEach((item) => {
+      pushMediaEntries("Skill", item.skills, project);
+      pushMediaEntries("Deliverable Type", item.deliverableType, project);
+      pushMediaEntries("Tech Stack", item.techStack, project);
     });
 
-    project.skills?.forEach((item) => {
-      pushEntry("Skill", getProjectTaxonomyTitle(item), project);
+    project.mediaGallery?.forEach((item) => {
+      pushMediaEntries("Skill", item.skills, project);
+      pushMediaEntries("Deliverable Type", item.deliverableType, project);
+      pushMediaEntries("Tech Stack", item.techStack, project);
+    });
+
+    project.videoGallery?.forEach((item) => {
+      pushMediaEntries("Skill", item.skills, project);
+      pushMediaEntries("Deliverable Type", item.deliverableType, project);
+      pushMediaEntries("Tech Stack", item.techStack, project);
+    });
+
+    project.pdfGallery?.forEach((item) => {
+      pushMediaEntries("Skill", item.skills, project);
+      pushMediaEntries("Deliverable Type", item.deliverableType, project);
+      pushMediaEntries("Tech Stack", item.techStack, project);
+    });
+
+    project.externalLinkGallery?.forEach((item) => {
+      pushMediaEntries("Skill", item.skills, project);
+      pushMediaEntries("Deliverable Type", item.deliverableType, project);
+      pushMediaEntries("Tech Stack", item.techStack, project);
     });
   });
 
@@ -131,6 +170,22 @@ export function collectTaxonomyResults(projects: SanityProject[]) {
 
     return a.value.localeCompare(b.value);
   });
+}
+
+function matchesTaxonomyValue(
+  options:
+    | SanityProject["mediaGallery"][number]["skills"]
+    | SanityProject["mediaGallery"][number]["techStack"]
+    | SanityProject["mediaGallery"][number]["deliverableType"],
+  value: string
+) {
+  const normalizedValue = value.trim().toLowerCase();
+  return (
+    options?.some(
+      (option) =>
+        getProjectTaxonomyTitle(option)?.trim().toLowerCase() === normalizedValue
+    ) ?? false
+  );
 }
 
 export function filterTaxonomyResults(
@@ -230,6 +285,98 @@ export function collectSearchMediaItems(projects: SanityProject[]) {
         url,
         mimeType: item.asset?.mimeType ?? undefined,
       });
+    });
+  });
+
+  return items;
+}
+
+export function collectSearchMediaItemsForResult(
+  projects: SanityProject[],
+  result: TaxonomySearchResult | null
+) {
+  if (!result) return [];
+
+  if (
+    result.category !== "Skill" &&
+    result.category !== "Tech Stack" &&
+    result.category !== "Deliverable Type"
+  ) {
+    return collectSearchMediaItems(projects);
+  }
+
+  const items: SearchMediaItem[] = [];
+  const seen = new Set<string>();
+
+  const pushImage = (url: string | undefined, alt: string, caption?: string) => {
+    if (!url || seen.has(url)) return;
+    seen.add(url);
+    items.push({
+      type: "image",
+      url,
+      alt,
+      caption,
+    });
+  };
+
+  const pushVideo = (url: string | undefined, mimeType?: string) => {
+    if (!url || seen.has(url)) return;
+    seen.add(url);
+    items.push({
+      type: "video",
+      url,
+      mimeType,
+    });
+  };
+
+  projects.forEach((project) => {
+    project.imageGallery?.forEach((item) => {
+      const matches =
+        result.category === "Skill"
+          ? matchesTaxonomyValue(item.skills, result.value)
+          : result.category === "Deliverable Type"
+          ? matchesTaxonomyValue(item.deliverableType, result.value)
+          : matchesTaxonomyValue(item.techStack, result.value);
+
+      if (!matches) return;
+
+      pushImage(
+        getProjectImageGalleryUrl(item),
+        item.title ?? project.title,
+        buildMediaCaption(project.title, item.caption ?? item.title)
+      );
+    });
+
+    project.mediaGallery?.forEach((item) => {
+      if (item.mediaType !== "image") return;
+
+      const matches =
+        result.category === "Skill"
+          ? matchesTaxonomyValue(item.skills, result.value)
+          : result.category === "Deliverable Type"
+          ? matchesTaxonomyValue(item.deliverableType, result.value)
+          : matchesTaxonomyValue(item.techStack, result.value);
+
+      if (!matches) return;
+
+      pushImage(
+        getProjectMediaUrl(item),
+        item.alt ?? item.title ?? project.title,
+        buildMediaCaption(project.title, item.caption ?? item.title)
+      );
+    });
+
+    project.videoGallery?.forEach((item) => {
+      const matches =
+        result.category === "Skill"
+          ? matchesTaxonomyValue(item.skills, result.value)
+          : result.category === "Deliverable Type"
+          ? matchesTaxonomyValue(item.deliverableType, result.value)
+          : matchesTaxonomyValue(item.techStack, result.value);
+
+      if (!matches) return;
+
+      pushVideo(getProjectVideoUrl(item), item.asset?.mimeType ?? undefined);
     });
   });
 

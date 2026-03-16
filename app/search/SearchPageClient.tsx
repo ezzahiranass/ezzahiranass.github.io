@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import ProjectGallery from "../components/projects/ProjectGallery";
 import ProjectCard from "../components/projects/ProjectCard";
@@ -10,9 +10,10 @@ import TaxonomySearch from "../components/search/TaxonomySearch";
 import { type SanityProject } from "../lib/sanity";
 import {
   collectSearchMediaItems,
+  collectSearchMediaItemsForResult,
   collectTaxonomyResults,
-  getFirstSearchBannerImage,
   getProjectsForTaxonomyResult,
+  type SearchMediaItem,
   resolveTaxonomyResult,
 } from "../lib/taxonomy-search";
 
@@ -35,6 +36,142 @@ function buildSummary(projectTitles: string[], mediaCount: number) {
   }, including ${titlePreview}.`;
 }
 
+function isMediaDrivenSearch(category?: string | null) {
+  return (
+    category === "Skill" ||
+    category === "Deliverable Type" ||
+    category === "Tech Stack"
+  );
+}
+
+function hashString(value: string) {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+  return hash;
+}
+
+function pickSeededItem<T>(items: T[], seed: string) {
+  if (items.length === 0) return null;
+  const index = hashString(seed) % items.length;
+  return items[index] ?? null;
+}
+
+function getBannerImageFromMedia(items: SearchMediaItem[], seed: string) {
+  const imageItems = items.filter(
+    (item): item is Extract<SearchMediaItem, { type: "image" }> => item.type === "image"
+  );
+  return pickSeededItem(imageItems, seed)?.url ?? null;
+}
+
+function SearchResultsPanel({
+  defaultView,
+  galleryItems,
+  matchingProjects,
+}: {
+  defaultView: "gallery" | "projects";
+  galleryItems: SearchMediaItem[];
+  matchingProjects: SanityProject[];
+}) {
+  const [activeView, setActiveView] = useState<"gallery" | "projects">(
+    defaultView
+  );
+
+  const activeHeading =
+    activeView === "gallery"
+      ? {
+          eyebrow: "Media Matches",
+          title: "Images and videos from those projects.",
+          description:
+            "Media is pulled from the matching projects for this taxonomy result and shown first for quicker visual scanning.",
+        }
+      : {
+          eyebrow: "Project Matches",
+          title: "Projects tied to this taxonomy result.",
+          description:
+            "These are the project records where this skill, role, type, subtype, or stack entry appears.",
+        };
+
+  return (
+    <section className="search-page__section search-page__section--results">
+      <div className="container">
+        <div className="section-heading search-page__heading">
+          
+          <div className="search-page__toolbar">
+            <div
+              className="search-page__switch"
+              role="tablist"
+              aria-label="Search results view"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeView === "gallery"}
+                className={`search-page__switch-button ${
+                  activeView === "gallery"
+                    ? "search-page__switch-button--active"
+                    : ""
+                }`}
+                onClick={() => setActiveView("gallery")}
+              >
+                Gallery
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeView === "projects"}
+                className={`search-page__switch-button ${
+                  activeView === "projects"
+                    ? "search-page__switch-button--active"
+                    : ""
+                }`}
+                onClick={() => setActiveView("projects")}
+              >
+                Projects
+              </button>
+            </div>
+            <p className="subtitle search-page__description">
+              {activeHeading.description}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {activeView === "gallery" ? (
+        galleryItems.length > 0 ? (
+          <ProjectGallery items={galleryItems} />
+        ) : (
+          <section className="search-page__empty">
+            <div className="container">
+              <h2 className="project-section-heading">No media found yet.</h2>
+              <p className="project-article__paragraph">
+                The matching projects exist, but they do not currently have any
+                image or video assets attached.
+              </p>
+            </div>
+          </section>
+        )
+      ) : (
+        <div className="container">
+          {matchingProjects.length > 0 ? (
+            <div className="projects-feed">
+              {matchingProjects.map((project) => (
+                <ProjectCard
+                  key={project.slug?.current ?? project.title}
+                  project={project}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="projects-state">No projects matched this search yet.</div>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function SearchPageClient({
   projects,
 }: {
@@ -53,14 +190,22 @@ export default function SearchPageClient({
     () => getProjectsForTaxonomyResult(projects, selectedResult),
     [projects, selectedResult]
   );
+  const defaultView = isMediaDrivenSearch(selectedResult?.category)
+    ? "gallery"
+    : "projects";
   const galleryItems = useMemo(
-    () => collectSearchMediaItems(matchingProjects),
-    [matchingProjects]
+    () => collectSearchMediaItemsForResult(matchingProjects, selectedResult),
+    [matchingProjects, selectedResult]
   );
-  const bannerImage = useMemo(
-    () => getFirstSearchBannerImage(matchingProjects),
-    [matchingProjects]
-  );
+  const bannerImage = useMemo(() => {
+    const seed = selectedResult?.key ?? "search-banner";
+    if (isMediaDrivenSearch(selectedResult?.category)) {
+      return getBannerImageFromMedia(galleryItems, seed);
+    }
+
+    const projectMedia = collectSearchMediaItems(matchingProjects);
+    return getBannerImageFromMedia(projectMedia, seed);
+  }, [galleryItems, matchingProjects, selectedResult]);
 
   const projectTitles = matchingProjects.map((project) => project.title);
   const heroTitle = selectedResult
@@ -150,66 +295,12 @@ export default function SearchPageClient({
       </section>
 
       {selectedResult ? (
-        <>
-          <section className="search-page__section">
-            <div className="container">
-              <div className="section-heading search-page__heading">
-                <div>
-                  <p className="eyebrow mono">Project Matches</p>
-                  <h2 className="title">Projects tied to this taxonomy result.</h2>
-                </div>
-                <p className="subtitle">
-                  These are the project records where this skill, role, type,
-                  subtype, or stack entry appears.
-                </p>
-              </div>
-
-              {matchingProjects.length > 0 ? (
-                <div className="projects-feed">
-                  {matchingProjects.map((project) => (
-                    <ProjectCard
-                      key={project.slug?.current ?? project.title}
-                      project={project}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="projects-state">
-                  No projects matched this search yet.
-                </div>
-              )}
-            </div>
-          </section>
-
-          <section className="search-page__section search-page__section--media">
-            <div className="container">
-              <div className="section-heading search-page__heading">
-                <div>
-                  <p className="eyebrow mono">Media Matches</p>
-                  <h2 className="title">Images and videos from those projects.</h2>
-                </div>
-                <p className="subtitle">
-                  Media is pulled from the matching projects above, not matched
-                  directly at the asset level.
-                </p>
-              </div>
-            </div>
-
-            {galleryItems.length > 0 ? (
-              <ProjectGallery items={galleryItems} />
-            ) : (
-              <section className="search-page__empty">
-                <div className="container">
-                  <h2 className="project-section-heading">No media found yet.</h2>
-                  <p className="project-article__paragraph">
-                    The matching projects exist, but they do not currently have any
-                    image or video assets attached.
-                  </p>
-                </div>
-              </section>
-            )}
-          </section>
-        </>
+        <SearchResultsPanel
+          key={selectedResult.key}
+          defaultView={defaultView}
+          galleryItems={galleryItems}
+          matchingProjects={matchingProjects}
+        />
       ) : (
         <section className="search-page__empty">
           <div className="container">

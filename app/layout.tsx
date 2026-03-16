@@ -21,6 +21,9 @@ export const metadata: Metadata = {
   description: "Design Technology in Architecture.",
 };
 
+
+
+
 const themeInitScript = `
 (() => {
   const storageKey = "portfolio-theme";

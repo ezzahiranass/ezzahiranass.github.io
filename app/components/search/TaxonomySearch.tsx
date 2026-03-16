@@ -39,7 +39,7 @@ export default function TaxonomySearch({
   initialExpanded = false,
   initialProjects,
   initialQuery = "",
-  placeholder = "Search skills, roles, tech stacks...",
+  placeholder = "Search skills, clients, deliverables, roles, tech stacks...",
   variant = "default",
 }: TaxonomySearchProps) {
   const router = useRouter();
@@ -142,7 +142,7 @@ export default function TaxonomySearch({
     >
       {!searchOpen ? (
         <button
-          aria-label="Search skills and project taxonomy"
+          aria-label="Search project taxonomy"
           className="taxonomy-search__toggle"
           onClick={openSearch}
           type="button"
@@ -155,7 +155,7 @@ export default function TaxonomySearch({
         <Search aria-hidden="true" size={16} />
         <input
           ref={inputRef}
-          aria-label="Search skills, roles, project types, subtypes, and tech stacks"
+          aria-label="Search skills, clients, deliverable types, roles, project types, subtypes, and tech stacks"
           onChange={(event) => setQuery(event.target.value)}
           onFocus={() => setResultsOpen(true)}
           onKeyDown={handleKeyDown}

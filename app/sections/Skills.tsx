@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import skillsData from "../../public/data/skills.json";
+import { fetchSanityProjects, type SanityProject } from "../lib/sanity";
 
 type SkillCard = {
   id: string;
@@ -11,10 +12,155 @@ type SkillCard = {
   image: string | null;
 };
 
+type SkillMedia =
+  | { type: "image"; url: string }
+  | { type: "video"; url: string; mimeType?: string };
+
+type SkillCardWithMedia = SkillCard & {
+  media: SkillMedia | null;
+};
+
+function normalizeSkillKey(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function hashString(value: string) {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+  return hash;
+}
+
 export default function Skills() {
-  const skills = skillsData as SkillCard[];
+  const skillMetadata = skillsData as SkillCard[];
   const railRef = useRef<HTMLDivElement | null>(null);
   const isResettingRef = useRef(false);
+  const [projects, setProjects] = useState<SanityProject[]>([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetchSanityProjects(controller.signal)
+      .then((result) => {
+        setProjects(result);
+      })
+      .catch(() => {});
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
+
+  const skills = useMemo<SkillCardWithMedia[]>(() => {
+    const metadataByKey = new Map(
+      skillMetadata.map((skill) => [normalizeSkillKey(skill.title), skill])
+    );
+    const skillMediaMap = new Map<string, { title: string; media: SkillMedia[] }>();
+
+    const pushMedia = (
+      rawTitle: string | undefined,
+      media: SkillMedia | null
+    ) => {
+      const title = rawTitle?.trim();
+      if (!title || !media) return;
+
+      const key = normalizeSkillKey(title);
+      const existing = skillMediaMap.get(key);
+      if (existing) {
+        if (!existing.media.some((item) => item.url === media.url)) {
+          existing.media.push(media);
+        }
+        return;
+      }
+
+      skillMediaMap.set(key, {
+        title,
+        media: [media],
+      });
+    };
+
+    projects.forEach((project) => {
+      project.imageGallery?.forEach((item) => {
+        const media = item.asset?.url
+          ? ({ type: "image", url: item.asset.url } as const)
+          : null;
+        item.skills?.forEach((skill) =>
+          pushMedia(
+            typeof skill?.title === "string" ? skill.title : undefined,
+            media
+          )
+        );
+      });
+
+      project.mediaGallery?.forEach((item) => {
+        if (item.mediaType !== "image" || !item.image?.asset?.url) return;
+
+        const media = { type: "image", url: item.image.asset.url } as const;
+        item.skills?.forEach((skill) =>
+          pushMedia(
+            typeof skill?.title === "string" ? skill.title : undefined,
+            media
+          )
+        );
+      });
+
+      project.videoGallery?.forEach((item) => {
+        if (!item.asset?.url) return;
+
+        const media = {
+          type: "video",
+          url: item.asset.url,
+          mimeType: item.asset.mimeType,
+        } as const;
+        item.skills?.forEach((skill) =>
+          pushMedia(
+            typeof skill?.title === "string" ? skill.title : undefined,
+            media
+          )
+        );
+      });
+    });
+
+    const orderedKeys = [
+      ...skillMetadata
+        .map((skill) => normalizeSkillKey(skill.title))
+        .filter((key) => skillMediaMap.has(key)),
+      ...Array.from(skillMediaMap.keys())
+        .filter(
+          (key) =>
+            !skillMetadata.some(
+              (skill) => normalizeSkillKey(skill.title) === key
+            )
+        )
+        .sort((left, right) => {
+          const leftTitle = skillMediaMap.get(left)?.title ?? left;
+          const rightTitle = skillMediaMap.get(right)?.title ?? right;
+          return leftTitle.localeCompare(rightTitle);
+        }),
+    ];
+
+    return orderedKeys.map((key) => {
+      const source = skillMediaMap.get(key);
+      const metadata = metadataByKey.get(key);
+      const pickedMedia =
+        source && source.media.length > 0
+          ? source.media[hashString(source.title) % source.media.length] ?? null
+          : null;
+
+      return {
+        id: metadata?.id ?? key.replace(/\s+/g, "-"),
+        title: metadata?.title ?? source?.title ?? key,
+        description:
+          metadata?.description ??
+          `Selected work tagged with ${source?.title ?? key}.`,
+        details: metadata?.details ?? [],
+        image:
+          pickedMedia?.type === "image" ? pickedMedia.url : metadata?.image ?? null,
+        media: pickedMedia,
+      };
+    });
+  }, [projects, skillMetadata]);
 
   const loopedSkills = useMemo(() => {
     if (skills.length === 0) return [];
@@ -95,14 +241,25 @@ export default function Skills() {
       </div>
 
       <div
-        className="gallery-scroller hide-scrollbar"
+        className="skills-scroller hide-scrollbar"
         ref={railRef}
         onScroll={handleScroll}
       >
         {loopedSkills.map((skill, index) => (
           <div key={`${skill.id}-${index}`} className="gallery-card">
             <div className="gallery-media">
-              {skill.image ? (
+              {skill.media?.type === "video" ? (
+                <video
+                  autoPlay
+                  className="gallery-media__video"
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                >
+                  <source src={skill.media.url} type={skill.media.mimeType ?? "video/mp4"} />
+                </video>
+              ) : skill.image ? (
                 <img src={skill.image} alt={skill.title} loading="lazy" />
               ) : null}
             </div>

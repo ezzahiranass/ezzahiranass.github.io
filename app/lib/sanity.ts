@@ -14,6 +14,7 @@ export type ProjectTaxonomyOption = {
 export type SanityProject = {
   title: string;
   subtitle?: string;
+  featured?: boolean;
   projectType?: ProjectTaxonomyOption;
   projectSubtypes?: ProjectTaxonomyOption[];
   slug?: {
@@ -23,8 +24,6 @@ export type SanityProject = {
   description?: string;
   client?: ProjectTaxonomyOption;
   role?: ProjectTaxonomyOption;
-  techStack?: ProjectTaxonomyOption[];
-  skills?: ProjectTaxonomyOption[];
   publishedAt?: string;
   coverMedia?: {
     image?: {
@@ -38,7 +37,9 @@ export type SanityProject = {
     alt?: string | null;
     caption?: string;
     mediaType?: string;
+    skills?: ProjectTaxonomyOption[];
     deliverableType?: ProjectTaxonomyOption[];
+    techStack?: ProjectTaxonomyOption[];
     image?: {
       asset?: {
         url?: string;
@@ -53,7 +54,9 @@ export type SanityProject = {
   imageGallery?: Array<{
     title?: string;
     caption?: string;
+    skills?: ProjectTaxonomyOption[];
     deliverableType?: ProjectTaxonomyOption[];
+    techStack?: ProjectTaxonomyOption[];
     asset?: {
       url?: string;
     };
@@ -61,7 +64,9 @@ export type SanityProject = {
   videoGallery?: Array<{
     title?: string;
     caption?: string;
+    skills?: ProjectTaxonomyOption[];
     deliverableType?: ProjectTaxonomyOption[];
+    techStack?: ProjectTaxonomyOption[];
     asset?: {
       url?: string;
       originalFilename?: string;
@@ -71,11 +76,20 @@ export type SanityProject = {
   pdfGallery?: Array<{
     title?: string;
     caption?: string;
+    skills?: ProjectTaxonomyOption[];
     deliverableType?: ProjectTaxonomyOption[];
+    techStack?: ProjectTaxonomyOption[];
     asset?: {
       url?: string;
       originalFilename?: string;
     };
+  }>;
+  externalLinkGallery?: Array<{
+    title?: string;
+    caption?: string;
+    skills?: ProjectTaxonomyOption[];
+    deliverableType?: ProjectTaxonomyOption[];
+    techStack?: ProjectTaxonomyOption[];
   }>;
   links?: ProjectLink[] | null;
 };
@@ -91,6 +105,7 @@ const SANITY_API_VERSION = "v2025-02-19";
 const projectFields = `
       title,
       subtitle,
+      featured,
       "projectType": coalesce(
         projectType->{
           title,
@@ -145,24 +160,6 @@ const projectFields = `
           }
         )
       ),
-      techStack[]{
-        _type == "reference" => @->{
-          title,
-          slug
-        },
-        _type != "reference" => {
-          "title": @
-        }
-      },
-      skills[]{
-        _type == "reference" => @->{
-          title,
-          slug
-        },
-        _type != "reference" => {
-          "title": @
-        }
-      },
       publishedAt,
       coverMedia{
         image{
@@ -174,7 +171,25 @@ const projectFields = `
         alt,
         caption,
         mediaType,
+        skills[]{
+          _type == "reference" => @->{
+            title,
+            slug
+          },
+          _type != "reference" => {
+            "title": @
+          }
+        },
         deliverableType[]{
+          _type == "reference" => @->{
+            title,
+            slug
+          },
+          _type != "reference" => {
+            "title": @
+          }
+        },
+        techStack[]{
           _type == "reference" => @->{
             title,
             slug
@@ -193,7 +208,25 @@ const projectFields = `
       imageGallery[]{
         title,
         caption,
+        skills[]{
+          _type == "reference" => @->{
+            title,
+            slug
+          },
+          _type != "reference" => {
+            "title": @
+          }
+        },
         deliverableType[]{
+          _type == "reference" => @->{
+            title,
+            slug
+          },
+          _type != "reference" => {
+            "title": @
+          }
+        },
+        techStack[]{
           _type == "reference" => @->{
             title,
             slug
@@ -207,7 +240,25 @@ const projectFields = `
       videoGallery[]{
         title,
         caption,
+        skills[]{
+          _type == "reference" => @->{
+            title,
+            slug
+          },
+          _type != "reference" => {
+            "title": @
+          }
+        },
         deliverableType[]{
+          _type == "reference" => @->{
+            title,
+            slug
+          },
+          _type != "reference" => {
+            "title": @
+          }
+        },
+        techStack[]{
           _type == "reference" => @->{
             title,
             slug
@@ -225,7 +276,25 @@ const projectFields = `
       pdfGallery[]{
         title,
         caption,
+        skills[]{
+          _type == "reference" => @->{
+            title,
+            slug
+          },
+          _type != "reference" => {
+            "title": @
+          }
+        },
         deliverableType[]{
+          _type == "reference" => @->{
+            title,
+            slug
+          },
+          _type != "reference" => {
+            "title": @
+          }
+        },
+        techStack[]{
           _type == "reference" => @->{
             title,
             slug
@@ -237,6 +306,37 @@ const projectFields = `
         asset->{
           url,
           originalFilename
+        }
+      },
+      externalLinkGallery[]{
+        title,
+        caption,
+        skills[]{
+          _type == "reference" => @->{
+            title,
+            slug
+          },
+          _type != "reference" => {
+            "title": @
+          }
+        },
+        deliverableType[]{
+          _type == "reference" => @->{
+            title,
+            slug
+          },
+          _type != "reference" => {
+            "title": @
+          }
+        },
+        techStack[]{
+          _type == "reference" => @->{
+            title,
+            slug
+          },
+          _type != "reference" => {
+            "title": @
+          }
         }
       },
       links

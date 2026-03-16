@@ -21,6 +21,40 @@ const deliverableTypeField = defineField({
   ],
 })
 
+const techStackField = defineField({
+  name: 'techStack',
+  title: 'Tech Stack',
+  type: 'array',
+  group: 'metadata',
+  of: [
+    defineArrayMember({
+      type: 'reference',
+      to: [{type: 'taxonomyOption'}],
+      options: {
+        filter: 'category == $category',
+        filterParams: {category: 'tech-stack'},
+      },
+    }),
+  ],
+})
+
+const skillsField = defineField({
+  name: 'skills',
+  title: 'Skills',
+  type: 'array',
+  group: 'metadata',
+  of: [
+    defineArrayMember({
+      type: 'reference',
+      to: [{type: 'taxonomyOption'}],
+      options: {
+        filter: 'category == $category',
+        filterParams: {category: 'skill'},
+      },
+    }),
+  ],
+})
+
 const projectLinkType = defineType({
   name: 'projectLink',
   title: 'Project Link',
@@ -173,7 +207,15 @@ const externalLinkGalleryItemType = defineType({
       group: 'metadata',
     }),
     defineField({
+      ...skillsField,
+      group: 'metadata',
+    }),
+    defineField({
       ...deliverableTypeField,
+      group: 'metadata',
+    }),
+    defineField({
+      ...techStackField,
       group: 'metadata',
     }),
   ],
@@ -294,38 +336,6 @@ export const projectType = defineType({
       },
     }),
     defineField({
-      name: 'techStack',
-      title: 'Tech Stack',
-      type: 'array',
-      group: 'overview',
-      of: [
-        defineArrayMember({
-          type: 'reference',
-          to: [{type: 'taxonomyOption'}],
-          options: {
-            filter: 'category == $category',
-            filterParams: {category: 'tech-stack'},
-          },
-        }),
-      ],
-    }),
-    defineField({
-      name: 'skills',
-      title: 'Skills',
-      type: 'array',
-      group: 'overview',
-      of: [
-        defineArrayMember({
-          type: 'reference',
-          to: [{type: 'taxonomyOption'}],
-          options: {
-            filter: 'category == $category',
-            filterParams: {category: 'skill'},
-          },
-        }),
-      ],
-    }),
-    defineField({
       name: 'summary',
       title: 'Summary',
       description: 'Short card/excerpt copy.',
@@ -392,7 +402,15 @@ export const projectType = defineType({
               rows: 3,
             }),
             defineField({
+              ...skillsField,
+              group: undefined,
+            }),
+            defineField({
               ...deliverableTypeField,
+              group: undefined,
+            }),
+            defineField({
+              ...techStackField,
               group: undefined,
             }),
           ],
@@ -422,7 +440,15 @@ export const projectType = defineType({
               rows: 3,
             }),
             defineField({
+              ...skillsField,
+              group: undefined,
+            }),
+            defineField({
               ...deliverableTypeField,
+              group: undefined,
+            }),
+            defineField({
+              ...techStackField,
               group: undefined,
             }),
           ],
@@ -452,7 +478,15 @@ export const projectType = defineType({
               rows: 3,
             }),
             defineField({
+              ...skillsField,
+              group: undefined,
+            }),
+            defineField({
               ...deliverableTypeField,
+              group: undefined,
+            }),
+            defineField({
+              ...techStackField,
               group: undefined,
             }),
           ],

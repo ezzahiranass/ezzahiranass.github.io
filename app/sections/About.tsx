@@ -1,10 +1,45 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import CutoutHero from "../components/CutoutHero";
 import ParticleGrid from "../components/ParticleGrid";
 import { assetPath } from "../lib/assetPath";
 
 export default function About() {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return undefined;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setIsVisible(true);
+        observer.disconnect();
+      },
+      {
+        threshold: 0.2,
+        rootMargin: "0px 0px -10% 0px",
+      }
+    );
+
+    observer.observe(section);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   return (
-    <section id="about" className="section section--deep about-section">
+    <section
+      id="about"
+      className={`section section--deep about-section ${
+        isVisible ? "about-section--visible" : ""
+      }`}
+      ref={sectionRef}
+    >
       <img
         alt=""
         className="paper-border paper-border--about"
@@ -15,7 +50,7 @@ export default function About() {
         <CutoutHero anchorId="about" enableMotion={false} />
 
         <div className="container about-content">
-          <div className="section-heading">
+          <div className="section-heading about-heading-reveal">
             <div>
               <p className="eyebrow mono">About</p>
               <h2 className="title">Architecture with a computational core.</h2>
@@ -27,7 +62,7 @@ export default function About() {
           </div>
           <div className="about-grid">
             <div className="about-copy">
-              <p>
+              <p className="about-copy__line about-copy__line--1">
                 As an architect and self-taught software developer specializing
                 in the intersection of design and technology, I create custom
                 plugins, automations, and digital solutions for 3D software to
@@ -37,7 +72,7 @@ export default function About() {
                 combine my architectural expertise with programming skills to
                 drive efficiency and push creative boundaries in the field.
               </p>
-              <p>
+              <p className="about-copy__line about-copy__line--2">
                 The portfolio is organized around built work, research studies,
                 and automation projects that accelerate modeling,
                 visualization, and documentation.

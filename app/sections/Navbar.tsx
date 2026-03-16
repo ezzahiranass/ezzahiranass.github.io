@@ -1,18 +1,22 @@
 "use client";
 
-import { Moon, Sun, X } from "lucide-react";
+import { Linkedin, Mail, Moon, Sun, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import SocialLinks from "../components/SocialLinks";
 
 const links = [
-  { label: "Skills", href: "#skills" },
-  { label: "Portfolio", href: "#portfolio" },
-  { label: "Roadmap", href: "#roadmap" },
   { label: "Gallery", href: "#gallery" },
-  { label: "Contact", href: "#contact" },
+  { label: "Portfolio", href: "#portfolio" },
+  { label: "Projects", href: "#projects" },
+  { label: "CV", href: "#roadmap" },
+  { label: "Playground", href: "#configurators" },
+  { label: "Skills", href: "#skills" },
+  { label: "About", href: "#about" },
 ];
 
 const STORAGE_KEY = "portfolio-theme";
+const LINKEDIN_URL = "https://www.linkedin.com/in/anass-ezzahir-a4b2a2182/";
+const LINKEDIN_HANDLE = "Anass Ezzahir";
+const EMAIL_ADDRESS = "anassezzahir@gmail.com";
 
 type Theme = "light" | "dark";
 
@@ -118,7 +122,42 @@ export default function Navbar() {
             <p className="contact-popup__copy">
               Reach out through LinkedIn or send me an email directly.
             </p>
-            <SocialLinks className="contact-popup__links" />
+            <div className="contact-popup__rows">
+              <div className="contact-popup__row">
+                <a
+                  aria-label="Open LinkedIn profile"
+                  className="social-link social-link--icon"
+                  href={LINKEDIN_URL}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  <Linkedin aria-hidden="true" size={18} />
+                </a>
+                <a
+                  className="contact-popup__value mono"
+                  href={LINKEDIN_URL}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {LINKEDIN_HANDLE}
+                </a>
+              </div>
+              <div className="contact-popup__row">
+                <a
+                  aria-label="Send email"
+                  className="social-link social-link--icon"
+                  href={`mailto:${EMAIL_ADDRESS}`}
+                >
+                  <Mail aria-hidden="true" size={18} />
+                </a>
+                <a
+                  className="contact-popup__value mono"
+                  href={`mailto:${EMAIL_ADDRESS}`}
+                >
+                  {EMAIL_ADDRESS}
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       ) : null}

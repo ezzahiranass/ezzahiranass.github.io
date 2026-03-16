@@ -1,6 +1,4 @@
-"use client";
-
-import { useEffect, useMemo, useRef } from "react";
+import type { CSSProperties } from "react";
 import type { GalleryImage } from "../../lib/sanity";
 
 export default function GalleryScroller({
@@ -10,82 +8,38 @@ export default function GalleryScroller({
   direction?: "forward" | "reverse";
   items: GalleryImage[];
 }) {
-  const railRef = useRef<HTMLDivElement | null>(null);
-  const isResettingRef = useRef(false);
-  const stepDelta = direction === "reverse" ? -0.5 : 0.5;
-
-  const loopedItems = useMemo(() => {
-    if (items.length === 0) return [];
-    return [...items, ...items, ...items];
-  }, [items]);
-
-  useEffect(() => {
-    const rail = railRef.current;
-    if (!rail) return;
-    const segment = rail.scrollWidth / 3;
-    if (segment > 0) rail.scrollLeft = segment;
-  }, [stepDelta]);
-
-  useEffect(() => {
-    const rail = railRef.current;
-    if (!rail) return;
-
-    let rafId = 0;
-
-    const step = () => {
-      rail.scrollLeft += stepDelta;
-      rafId = window.requestAnimationFrame(step);
-    };
-    rafId = window.requestAnimationFrame(step);
-
-    return () => {
-      window.cancelAnimationFrame(rafId);
-    };
-  }, [stepDelta]);
-
-  const handleScroll = () => {
-    const rail = railRef.current;
-    if (!rail || isResettingRef.current) return;
-    const segment = rail.scrollWidth / 3;
-    if (segment === 0) return;
-
-    if (direction === "reverse") {
-      if (rail.scrollLeft < segment * 0.55) {
-        isResettingRef.current = true;
-        rail.scrollLeft += segment;
-        isResettingRef.current = false;
-      }
-      if (rail.scrollLeft > segment * 1.45) {
-        isResettingRef.current = true;
-        rail.scrollLeft -= segment;
-        isResettingRef.current = false;
-      }
-      return;
-    }
-
-    if (rail.scrollLeft < segment * 0.55) {
-      isResettingRef.current = true;
-      rail.scrollLeft += segment;
-      isResettingRef.current = false;
-    }
-    if (rail.scrollLeft > segment * 1.45) {
-      isResettingRef.current = true;
-      rail.scrollLeft -= segment;
-      isResettingRef.current = false;
-    }
-  };
-
   if (items.length === 0) return null;
 
-  return (
-    <div className="gallery-scroller hide-scrollbar" ref={railRef} onScroll={handleScroll}>
-      {loopedItems.map((item, index) => (
-        <div key={`${item.url}-${index}`} className="gallery-card">
-          <div className="gallery-media">
-            <img src={item.url} alt={item.projectTitle} loading="lazy" />
-          </div>
+  const duration = `${Math.max(items.length * 5, 26)}s`;
+  const trackStyle = {
+    "--gallery-duration": duration,
+  } as CSSProperties;
+
+  const renderItems = (isClone = false) =>
+    items.map((item, index) => (
+      <div
+        key={`${isClone ? "clone" : "base"}-${item.url}-${index}`}
+        className="gallery-card"
+      >
+        <div className="gallery-media">
+          <img src={item.url} alt={isClone ? "" : item.projectTitle} loading="lazy" />
         </div>
-      ))}
+      </div>
+    ));
+
+  return (
+    <div className="gallery-scroller">
+      <div
+        className={`gallery-track ${
+          direction === "reverse" ? "gallery-track--reverse" : ""
+        }`}
+        style={trackStyle}
+      >
+        <div className="gallery-track__segment">{renderItems()}</div>
+        <div className="gallery-track__segment" aria-hidden="true">
+          {renderItems(true)}
+        </div>
+      </div>
     </div>
   );
 }
