@@ -27,6 +27,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               alt={`${project.title} cover image`}
               width={1200}
               height={1200}
+              sizes="(max-width: 700px) 92vw, 280px"
             />
           </div>
         ) : (

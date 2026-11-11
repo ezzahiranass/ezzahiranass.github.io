@@ -15,6 +15,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import type { ModelDefinition, ParamValues } from './types';
+import { useInView } from '../../lib/useInView';
 import {
   ConfiguratorThemeProvider,
 } from './theme';
@@ -555,9 +556,11 @@ function CameraViewApplier({
 }
 
 export default function ConfiguratorShell({ model }: ConfiguratorShellProps) {
+  const shellRef = useRef<HTMLDivElement | null>(null);
   const guiRef = useRef<HTMLDivElement | null>(null);
   const statsRef = useRef<HTMLDivElement | null>(null);
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
+  const inView = useInView(shellRef);
   const [params, setParams] = useState<ParamValues>(() => ({ ...model.defaults }));
   const [isCanvasEnabled, setIsCanvasEnabled] = useState(false);
   const [isSketchDrawing, setIsSketchDrawing] = useState(false);
@@ -653,6 +656,7 @@ export default function ConfiguratorShell({ model }: ConfiguratorShellProps) {
 
   return (
     <div
+      ref={shellRef}
       className="configurator-shell"
       id={`configurator-${model.id}`}
       onContextMenu={(event) => event.preventDefault()}
@@ -707,8 +711,10 @@ export default function ConfiguratorShell({ model }: ConfiguratorShellProps) {
         {isCanvasEnabled ? (
           <Canvas
             shadows
-            frameloop="always"
-            resize={{ scroll: true, debounce: { scroll: 0, resize: 0 } }}
+            dpr={[1, 1.5]}
+            // Paused while scrolled off screen; no per-scroll-event re-measuring.
+            frameloop={inView ? 'always' : 'never'}
+            resize={{ scroll: false }}
           >
             {orthographicEnabled ? (
               <DreiOrthographicCamera

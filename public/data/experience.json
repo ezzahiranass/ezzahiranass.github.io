@@ -1,22 +1,31 @@
-    
-    [{
-        "role": "Data System Engineer",
+[
+    {
+        "role": "Junior Architect",
         "organization": "JESA S.A.",
-        "period": "Feb 2025 – Present",
+        "period": "May 2026 – Present",
         "responsibilities": [
-            "Parametric Modeling Framework Development",
-            "Autodesk APS & ACC Integration",
-            "3D & 2D CAD Design Automation"
+            "Digitalizing architectural programming tasks & automating technical deliverables",
+            "Modeling, Rendering & Project Documentation",
+            "Integrating procedural & AI tools into architectural design"
         ]
     },
     {
-        "role": "3D Software Developer",
+        "role": "Data System Engineer",
+        "organization": "JESA S.A.",
+        "period": "Feb 2025 – May 2026",
+        "responsibilities": [
+            "Parametric industrial design tool development",
+            "Programmatic IFC & BIM data manipulation on Autodesk Construction Cloud (ACC)"
+        ]
+    },
+    {
+        "role": "BIM Developer",
         "type": "Independent",
-        "period": "Jan 2022 – Present",
+        "period": "Jan 2022 – Feb 2025",
         "organization": "Independent",
         "responsibilities": [
-            "Plugin Development & Automation Agency",
-            "Software Development Services"
+            "Automation tools & plug-in development for Blender",
+            "Web development for 3D solutions"
         ]
     },
     {
@@ -24,28 +33,29 @@
         "organization": "ZADA Architecture",
         "period": "Nov 2021 – Mar 2022",
         "responsibilities": [
+            "Architectural Design",
+            "Technical Drawing",
             "3D Modeling & Rendering",
-            "2D Drawings",
-            "Project Documentation",
-            "Conceptualization"
+            "3D Diagrams & Documentation"
         ]
     },
     {
         "role": "Intern",
-        "organization": "Engineering Agency: Stroydom Ingénierie",
+        "organization": "Engineering Office: Stroydom Ingénierie",
         "period": "Jun 2021",
         "responsibilities": [
-            "2D Drawings",
+            "Technical Drawing",
             "3D Modeling",
-            "Project Documentation"
+            "Project Documentation",
+            "Presentation Brochures"
         ]
     },
     {
         "role": "Intern",
-        "organization": "Agence Urbaine Sekhirate–Temara",
-        "period": "Jan 2021 – Feb 2021",
+        "organization": "Agence Urbaine Skhirate–Témara",
+        "period": "Jan 2021",
         "responsibilities": [
-            "Geographic Information System",
+            "Geographic Information System (GIS)",
             "Administrative Procedures"
         ]
     },
@@ -60,7 +70,7 @@
     },
     {
         "role": "Intern",
-        "organization": "Architecture Agency: AtConcept",
+        "organization": "Architecture Agency: AtConcept Architecture",
         "period": "Jul 2019 – Aug 2019",
         "responsibilities": [
             "3D Modeling",
@@ -69,10 +79,10 @@
     },
     {
         "role": "Intern",
-        "organization": "Architecture Agency: Oulhaj Said",
+        "organization": "Architecture Agency: Oulhaj Said Architecte",
         "period": "Feb 2019",
         "responsibilities": [
-            "2D Drawing",
+            "Technical Drawing",
             "Project Documentation"
         ]
     },
@@ -84,4 +94,4 @@
             "Construction Site Apprentice"
         ]
     }
-    ]
+]

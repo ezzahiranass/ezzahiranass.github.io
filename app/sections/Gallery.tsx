@@ -1,4 +1,5 @@
 import GalleryScroller from "../components/gallery/GalleryScroller";
+import PauseWhenOffscreen from "../components/gallery/PauseWhenOffscreen";
 import TaxonomySearch from "../components/search/TaxonomySearch";
 import { fetchSanityGalleryImages, fetchSanityProjects } from "../lib/sanity";
 
@@ -30,11 +31,11 @@ export default async function Gallery() {
           </div>
         </div>
       </div>
-      <div className="gallery-rows">
+      <PauseWhenOffscreen className="gallery-rows">
         <GalleryScroller items={firstRow} />
         <GalleryScroller direction="reverse" items={secondRow} />
         <GalleryScroller items={thirdRow} />
-      </div>
+      </PauseWhenOffscreen>
     </section>
   );
 }

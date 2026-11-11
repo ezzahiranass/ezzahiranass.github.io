@@ -3,13 +3,17 @@
 import ParticleGrid from "../components/ParticleGrid";
 import HeroCubeViewer from "../components/viewers/HeroCubeViewer";
 
+// HeroCubeViewer stays a static import on purpose: it is visible at first paint, and
+// keeping three.js in the initial bundle lets the lazily-loaded book and configurator
+// chunks reuse it (Turbopack duplicates shared deps between sibling dynamic imports).
+
 export default function Hero() {
   return (
     <section id="hero" className="hero">
       <ParticleGrid className="hero-shell">
         <div className="hero-overlay-grid" aria-hidden="true" />
         <div className="container hero-grid">
-        <HeroCubeViewer />
+          <HeroCubeViewer />
           <div className="hero-content">
             <span className="eyebrow mono">PORTFOLIO</span>
             <h1 className="hero-title">

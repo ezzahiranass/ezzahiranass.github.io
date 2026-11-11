@@ -79,7 +79,7 @@ export default function CutoutHero({
           alt="Cutout detail"
           className="cutout-img cutout-img--base"
           height={500}
-          src={assetPath("/images/cutout3.png")}
+          src={assetPath("/images/cutout3.webp")}
           unoptimized
           width={500}
         />
@@ -87,7 +87,7 @@ export default function CutoutHero({
           alt="Cutout detail hover"
           className="cutout-img cutout-img--hover"
           height={500}
-          src={assetPath("/images/cutout2.png")}
+          src={assetPath("/images/cutout2.webp")}
           unoptimized
           width={500}
         />

@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Layers3, SlidersHorizontal } from "lucide-react";
 import { assetPath } from "../../lib/assetPath";
+import { useInView } from "../../lib/useInView";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
@@ -465,7 +466,7 @@ function OutlinePostprocessing({
 }: {
   target: React.RefObject<THREE.Object3D | null>;
 }) {
-  const { gl, scene, camera, size } = useThree();
+  const { gl, scene, camera, size, invalidate } = useThree();
   const composerRef = useRef<EffectComposer | null>(null);
   const outlinePassRef = useRef<OutlinePass | null>(null);
 
@@ -478,6 +479,7 @@ function OutlinePostprocessing({
     const color = isLightTheme ? lightOutlineColor : OUTLINE_COLOR_DARK;
     outlinePassRef.current.visibleEdgeColor.set(color);
     outlinePassRef.current.hiddenEdgeColor.set(color);
+    invalidate();
   };
 
   useEffect(() => {
@@ -546,7 +548,7 @@ function AutoFitCamera({
   target: React.RefObject<THREE.Object3D | null>;
   enabled: boolean;
 }) {
-  const { camera, size } = useThree();
+  const { camera, size, invalidate } = useThree();
 
   const fit = () => {
     if (!target.current) return;
@@ -578,6 +580,7 @@ function AutoFitCamera({
       perspective.position.copy(nextPos);
       perspective.lookAt(targetPos);
       perspective.updateProjectionMatrix();
+      invalidate();
       return;
     }
 
@@ -590,37 +593,6 @@ function AutoFitCamera({
     const interval = window.setInterval(fit, 1000);
     return () => window.clearInterval(interval);
   }, [enabled, size.width, size.height]);
-
-  return null;
-}
-
-function CameraDebugLogger({
-  enabled,
-  controlsRef,
-}: {
-  enabled: boolean;
-  controlsRef: React.RefObject<OrbitControlsImpl | null>;
-}) {
-  const { camera } = useThree();
-
-  useFrame(() => {
-    if (!enabled) return;
-
-    const position = camera.position;
-    const target = controlsRef.current?.target;
-    const targetX = target?.x ?? DEFAULT_CAMERA_TARGET[0];
-    const targetY = target?.y ?? DEFAULT_CAMERA_TARGET[1];
-    const targetZ = target?.z ?? DEFAULT_CAMERA_TARGET[2];
-
-    console.log("[HeroCubeViewer] camera frame", {
-      position: [
-        Number(position.x.toFixed(3)),
-        Number(position.y.toFixed(3)),
-        Number(position.z.toFixed(3)),
-      ],
-      target: [Number(targetX.toFixed(3)), Number(targetY.toFixed(3)), Number(targetZ.toFixed(3))],
-    });
-  });
 
   return null;
 }
@@ -1452,6 +1424,9 @@ export default function HeroCubeViewer({
   const [viewPreset, setViewPreset] = useState<ViewPreset | null>(null);
   const buildingRef = useRef<THREE.Group | null>(null);
   const orbitControlsRef = useRef<OrbitControlsImpl | null>(null);
+  const viewerRef = useRef<HTMLDivElement | null>(null);
+  // Render (and auto-randomize) only while the hero is on screen.
+  const inView = useInView(viewerRef);
 
   useEffect(() => {
     let rafA = 0;
@@ -1501,7 +1476,7 @@ export default function HeroCubeViewer({
   };
 
   useEffect(() => {
-    if (!autoRandomizeEnabled || isHovered) return undefined;
+    if (!autoRandomizeEnabled || isHovered || !inView) return undefined;
     const interval = window.setInterval(() => {
       setControls((prev) => {
         const next = { ...prev };
@@ -1527,10 +1502,11 @@ export default function HeroCubeViewer({
     return () => {
       window.clearInterval(interval);
     };
-  }, [autoRandomizeEnabled, isHovered]);
+  }, [autoRandomizeEnabled, isHovered, inView]);
 
   return (
     <div
+      ref={viewerRef}
       className="hero-cube-viewer"
       aria-label="Hero parametric slab viewer"
       onMouseEnter={() => setIsHovered(true)}
@@ -1741,7 +1717,10 @@ export default function HeroCubeViewer({
         <Canvas
           key={orthographicEnabled ? "ortho-camera" : "perspective-camera"}
           className="hero-cube-viewer__canvas"
-          gl={{ alpha: true, antialias: true }}
+          // The OutlinePass composer renders into its own targets, so MSAA on the
+          // default framebuffer only cost memory/bandwidth without changing the image.
+          gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
+          dpr={[1, 1.5]}
           orthographic={orthographicEnabled}
           camera={
             orthographicEnabled
@@ -1754,8 +1733,16 @@ export default function HeroCubeViewer({
                   fov: 42,
                 }
           }
-          frameloop="always"
-          resize={{ scroll: true, debounce: { scroll: 0, resize: 0 } }}
+          // Off screen: no rendering. Idle: the scene only changes when the controls
+          // re-randomize (1/s), so render on demand (R3F invalidates on prop changes,
+          // drei's OrbitControls on camera changes) instead of running the OutlinePass
+          // composer 60x a second. Hover / autorotate: continuous for smooth orbiting.
+          frameloop={
+            !inView ? "never" : isHovered || autoRotateEnabled ? "always" : "demand"
+          }
+          // scroll:true re-measured the canvas (getBoundingClientRect) on every
+          // scroll event; pointer events use offsetX/Y so it isn't needed.
+          resize={{ scroll: false }}
         >
           <SceneBootstrap />
           <ambientLight intensity={0.75} />
@@ -1771,7 +1758,6 @@ export default function HeroCubeViewer({
             enabled={autoFitEnabled && autoRandomizeEnabled && !isHovered}
           />
           <CameraViewApplier viewPreset={viewPreset} controlsRef={orbitControlsRef} />
-          <CameraDebugLogger enabled={isHovered} controlsRef={orbitControlsRef} />
           <OrbitControls
             ref={orbitControlsRef}
             enablePan

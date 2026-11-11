@@ -13,6 +13,7 @@ type Particle = {
   ease: number;
   friction: number;
   tint: number;
+  style: string;
 };
 
 type Rgb = { r: number; g: number; b: number };
@@ -65,8 +66,21 @@ export default function ParticleGrid({ className, children }: ParticleGridProps)
 
     let particles: Particle[] = [];
     let animationFrame = 0;
+    let running = false;
     let bounds = shell.getBoundingClientRect();
     let radius = 120 * 120;
+
+    // Fill styles only depend on the theme colours and each particle's fixed tint,
+    // so build the strings once instead of ~1000 template strings per frame.
+    const particleStyle = (tint: number) => {
+      const color = colors[tint > 0.6 ? 1 : 0];
+      const intensity = 0.18 + tint * 0.45;
+      return `rgba(${color.r}, ${color.g}, ${color.b}, ${intensity})`;
+    };
+
+    const refreshStyles = () => {
+      for (const particle of particles) particle.style = particleStyle(particle.tint);
+    };
 
     const readColors = () => {
       const styles = getComputedStyle(document.documentElement);
@@ -82,6 +96,7 @@ export default function ParticleGrid({ className, children }: ParticleGridProps)
       };
 
       colors = [accent, accentAlt];
+      refreshStyles();
     };
 
     const buildGrid = () => {
@@ -113,6 +128,7 @@ export default function ParticleGrid({ className, children }: ParticleGridProps)
             ease: 0.2,
             friction: 0.92 + seed * 0.05,
             tint: seed,
+            style: particleStyle(seed),
           });
         }
       }
@@ -153,14 +169,30 @@ export default function ParticleGrid({ className, children }: ParticleGridProps)
           (particle.vy *= particle.friction) +
           (particle.originY - particle.y) * particle.ease;
 
-        const color = colors[particle.tint > 0.6 ? 1 : 0];
-        const intensity = 0.18 + particle.tint * 0.45;
-        context.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${intensity})`;
+        context.fillStyle = particle.style;
         context.fillRect(particle.x, particle.y, particle.size, particle.size);
       }
 
+      if (running) animationFrame = window.requestAnimationFrame(render);
+    };
+
+    const start = () => {
+      if (running) return;
+      running = true;
       animationFrame = window.requestAnimationFrame(render);
     };
+
+    const stop = () => {
+      running = false;
+      window.cancelAnimationFrame(animationFrame);
+    };
+
+    // Only animate while the field is on screen.
+    const visibilityObserver = new IntersectionObserver(([entry]) => {
+      if (entry?.isIntersecting) start();
+      else stop();
+    });
+    visibilityObserver.observe(shell);
 
     const handlePointerMove = (event: PointerEvent) => {
       const rect = shell.getBoundingClientRect();
@@ -187,10 +219,10 @@ export default function ParticleGrid({ className, children }: ParticleGridProps)
 
     readColors();
     buildGrid();
-    render();
 
     return () => {
-      window.cancelAnimationFrame(animationFrame);
+      stop();
+      visibilityObserver.disconnect();
       shell.removeEventListener("pointermove", handlePointerMove);
       shell.removeEventListener("pointerleave", handlePointerLeave);
       resizeObserver.disconnect();

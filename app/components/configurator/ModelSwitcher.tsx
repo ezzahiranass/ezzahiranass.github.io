@@ -1,9 +1,9 @@
 'use client';
 
-import type { ModelDefinition } from './types';
+import type { ModelMeta } from './models/meta';
 
 type ModelSwitcherProps = {
-  models: ModelDefinition[];
+  models: ModelMeta[];
   activeId: string;
   onSelect: (id: string) => void;
 };

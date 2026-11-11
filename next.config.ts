@@ -15,13 +15,10 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_BASE_PATH: basePath,
   },
   images: {
-    unoptimized: true,
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "cdn.sanity.io",
-      },
-    ],
+    // Static export can't use Next's optimizer, so Sanity images are resized by
+    // Sanity's own CDN through this loader (local files pass through untouched).
+    loader: "custom",
+    loaderFile: "./app/lib/sanityImageLoader.ts",
   },
   typescript: {
     ignoreBuildErrors: true,

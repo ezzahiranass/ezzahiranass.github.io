@@ -626,135 +626,213 @@ main {
   padding-bottom: 12px;
 }
 
-.skills-graph {
+/* ── Skills map: static "architecture → computation" lanes ── */
+
+.skills-map-section {
   position: relative;
   overflow: hidden;
-  padding-bottom: 0;
 }
 
-.skills-graph::before {
+.skills-map-section::before {
   content: "";
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(color-mix(in srgb, var(--line) 20%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--line) 20%, transparent) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse at 50% 60%, black 20%, transparent 80%);
-  opacity: 0.4;
+    linear-gradient(color-mix(in srgb, var(--line) 60%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--line) 60%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(180deg, transparent, black 30%, black 70%, transparent);
+  opacity: 0.35;
   pointer-events: none;
-  z-index: 0;
 }
 
-.skills-graph .container {
+.skills-map-section .container {
   position: relative;
-  z-index: 2;
 }
 
-.skills-graph__svg {
-  display: block;
+.skills-map__axis {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.skills-map__axis span:last-child {
+  color: var(--overlay-panel-accent);
+}
+
+.skills-map__lanes {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  padding-top: 28px;
+  list-style: none;
+}
+
+/* the axis line the lane nodes sit on */
+.skills-map__lanes::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--line-strong), var(--accent));
+}
+
+.skill-lane {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px 20px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-panel);
+  transition: border-color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+}
+
+.skill-lane::before {
+  /* stem from the axis down to the card */
+  content: "";
+  position: absolute;
+  top: -28px;
+  left: 28px;
+  width: 1px;
+  height: 28px;
+  background: color-mix(in srgb, var(--accent) var(--lane-mix), var(--line-strong));
+}
+
+.skill-lane__node {
+  position: absolute;
+  top: -34px;
+  left: 22px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--accent) var(--lane-mix), var(--line-strong));
+  background: var(--bg-secondary);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.skill-lane:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: var(--surface-panel-hover);
+  transform: translateY(-3px);
+}
+
+.skill-lane:hover .skill-lane__node {
+  background: var(--accent);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.skill-lane__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.skill-lane__index {
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+}
+
+.skill-lane__glyph {
+  width: 52px;
+  height: 52px;
+  color: color-mix(in srgb, var(--accent) var(--lane-mix), var(--text));
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+.skill-lane__glyph svg {
   width: 100%;
-  pointer-events: none;
-  position: relative;
-  z-index: 1;
+  height: 100%;
 }
 
-/* SVG constellation elements */
-
-.sg-node {
-  opacity: 0;
-  animation: sg-fadein 0.7s ease-out both;
+.skill-lane:hover .skill-lane__glyph {
+  opacity: 1;
 }
 
-.sg-node__halo {
-  opacity: 0.05;
-  animation: sg-halo-pulse 6s ease-in-out infinite;
-}
-
-.sg-node__glow {
-  opacity: 0.18;
-  animation: sg-halo-pulse 4s ease-in-out infinite;
-}
-
-.sg-node__ring {
-  stroke: rgba(120, 160, 255, 0.45);
-  stroke-width: 1.2;
-}
-
-.sg-node__pulse {
-  stroke: rgba(100, 140, 255, 0.25);
-  stroke-width: 1;
-  animation: sg-ring-pulse 4s ease-out infinite;
-}
-
-.sg-node__title {
-  font-size: 13px;
+.skill-lane__title {
+  font-size: 1.15rem;
   font-weight: 600;
-  fill: rgba(237, 241, 245, 0.92);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
-.sg-node__desc {
-  font-size: 10px;
-  fill: rgba(154, 163, 173, 0.75);
+.skill-lane__blurb {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
 }
 
-.sg-edge {
-  stroke-linecap: round;
+.skill-lane__tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 6px;
+  list-style: none;
 }
 
-.sg-edge--soft {
-  stroke: rgba(237, 241, 245, 0.1);
-  stroke-width: 1;
-  stroke-dasharray: 4 7;
-  animation: sg-soft-pulse 8s ease-in-out infinite;
+.skill-lane__tool {
+  padding: 4px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-raised-soft);
+  color: var(--overlay-panel-text-muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
 }
 
-.sg-edge--accent {
-  stroke: rgba(80, 120, 255, 0.75);
-  stroke-width: 1.5;
-  stroke-dasharray: 90 9999;
-  stroke-dashoffset: 0;
-  animation: sg-accent-travel 4s linear infinite, sg-accent-pulse 5s ease-in-out infinite;
+@media (max-width: 960px) {
+  .skills-map__lanes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 46px;
+  }
 }
 
-.sg-star {
-  fill: rgba(237, 241, 245, 0.55);
-  animation: sg-twinkle 4s ease-in-out infinite;
-}
+@media (max-width: 600px) {
+  .skills-map__axis {
+    display: none;
+  }
 
-@keyframes sg-fadein {
-  to { opacity: 1; }
-}
+  .skills-map__lanes {
+    grid-template-columns: 1fr;
+    row-gap: 18px;
+    padding-top: 0;
+    padding-left: 26px;
+  }
 
-@keyframes sg-halo-pulse {
-  0%, 100% { opacity: 0.04; }
-  50%       { opacity: 0.14; }
-}
+  .skills-map__lanes::before {
+    top: 0;
+    bottom: 0;
+    left: 6px;
+    right: auto;
+    width: 2px;
+    height: auto;
+    background: linear-gradient(180deg, var(--line-strong), var(--accent));
+  }
 
-@keyframes sg-ring-pulse {
-  0%   { transform: scale(1);    opacity: 0.5; }
-  100% { transform: scale(1.5);  opacity: 0; }
-}
+  .skill-lane::before {
+    top: 28px;
+    left: -20px;
+    width: 20px;
+    height: 1px;
+  }
 
-@keyframes sg-soft-pulse {
-  0%, 100% { opacity: 0.06; }
-  50%       { opacity: 0.18; }
-}
-
-@keyframes sg-accent-travel {
-  from { stroke-dashoffset: 0; }
-  to   { stroke-dashoffset: -360; }
-}
-
-@keyframes sg-accent-pulse {
-  0%, 100% { opacity: 0.5; }
-  50%       { opacity: 1.0; }
-}
-
-@keyframes sg-twinkle {
-  0%, 100% { opacity: 0.25; }
-  50%       { opacity: 0.75; }
+  .skill-lane__node {
+    top: 22px;
+    left: -26px;
+  }
 }
 
 .taxonomy-search {
@@ -1837,6 +1915,28 @@ main {
   z-index: 10;
 }
 
+/* Stand-in shown behind the intro overlay until the configurator is opened */
+.configurator-shell--placeholder {
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(color-mix(in srgb, var(--line) 70%, transparent) 1px, transparent 1px) 0 0 / 40px 40px,
+    linear-gradient(90deg, color-mix(in srgb, var(--line) 70%, transparent) 1px, transparent 1px) 0 0 / 40px 40px,
+    #0d0f14;
+}
+
+.viewer-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
 .configurator-shell__gui {
   position: absolute;
   right: 12px;
@@ -1940,6 +2040,16 @@ main {
 
 .gallery-track--reverse {
   animation-name: gallery-marquee-reverse;
+}
+
+.gallery-rows.is-paused .gallery-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-track {
+    animation-play-state: paused;
+  }
 }
 
 .gallery-track__segment {

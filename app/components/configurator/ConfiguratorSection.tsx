@@ -1,13 +1,26 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import ConfiguratorShell from './ConfiguratorShell';
+import dynamic from 'next/dynamic';
+import { useState } from 'react';
 import ModelSwitcher from './ModelSwitcher';
-import { configuratorModels } from './models';
+import { configuratorModelMeta } from './models/meta';
 import ViewerIntroOverlay from '../viewers/ViewerIntroOverlay';
 
+const ShellPlaceholder = ({ label }: { label?: string }) => (
+  <div className="configurator-shell configurator-shell--placeholder" aria-hidden="true">
+    {label ? <span className="viewer-loading mono">{label}</span> : null}
+  </div>
+);
+
+// The configurator (lil-gui, the model renderers and ~30 MB of GLB models they
+// preload at module scope) is only fetched once the visitor opens it.
+const ConfiguratorById = dynamic(() => import('./ConfiguratorById'), {
+  ssr: false,
+  loading: () => <ShellPlaceholder label="Loading configurator…" />,
+});
+
 export default function ConfiguratorSection() {
-  const models = useMemo(() => configuratorModels, []);
+  const models = configuratorModelMeta;
   const [activeId, setActiveId] = useState(models[0]?.id ?? '');
   const activeModel = models.find((model) => model.id === activeId) ?? models[0];
 
@@ -25,8 +38,9 @@ export default function ConfiguratorSection() {
           'Adjust parameters in the panel and inspect the model directly in the viewport.'
         }
         buttonLabel={activeModel.intro?.buttonLabel ?? 'Open Viewer'}
+        placeholder={<ShellPlaceholder />}
       >
-        <ConfiguratorShell model={activeModel} />
+        <ConfiguratorById modelId={activeModel.id} />
       </ViewerIntroOverlay>
     </div>
   );
